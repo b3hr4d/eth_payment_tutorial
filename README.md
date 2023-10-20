@@ -327,7 +327,7 @@ const Deposit: React.FC<DepositProps> = ({}) => {
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     let amount = e.target.valueAsNumber
-    if (amount && amount < 0) amount = 0
+    if (Number.isNaN(amount) || amount < 0) amount = 0
 
     setAmount(amount)
   }
@@ -722,8 +722,7 @@ return <VerifyTransaction hash={data.transactionHash} />
 
 #### Testing the Changes
 
-1. **Run the App**: If not already running, start your app.
+1. **Initiate a Transaction**: Initiate a deposit transaction and confirm it.
 
-2. **Initiate a Transaction**: Initiate a deposit transaction and confirm it.
-
-3. **Check the Output**: You should see the transaction details displayed once the transaction is confirmed on-chain.
+2. **Check the Output**: You should see the transaction details displayed once the transaction is confirmed and procceed on-chain.
+   ![Alt text](assets/verified_onchain.png)

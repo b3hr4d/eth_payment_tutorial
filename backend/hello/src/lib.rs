@@ -1,12 +1,12 @@
 use b3_utils::outcall::{HttpOutcall, HttpOutcallResponse};
 use b3_utils::{hex_string_with_0x_to_nat, vec_to_hex_string_with_0x, Subaccount};
-use candid::{Nat, Principal};
+use candid::Nat;
 use serde_json::json;
 mod receipt;
 
 const RPC_URL: &str = "https://eth-sepolia.g.alchemy.com/v2/ZpSPh3E7KZQg4mb3tN8WFXxG4Auntbxp";
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
-const MINIMUM_AMOUNT: u128 = 10000000000000000;
+const MINIMUM_AMOUNT: u128 = 10_000_000_000_000_000;
 
 async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, String> {
     let rpc = json!({
@@ -69,16 +69,6 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 #[ic_cdk::query]
 fn canister_deposit_principal() -> String {
     let subaccount = Subaccount::from(ic_cdk::id());
-
-    let bytes32 = subaccount.to_bytes32().unwrap();
-
-    vec_to_hex_string_with_0x(bytes32)
-}
-
-#[ic_cdk::query]
-fn deposit_principal(principal: String) -> String {
-    let principal = Principal::from_text(principal).unwrap();
-    let subaccount = Subaccount::from_principal(principal);
 
     let bytes32 = subaccount.to_bytes32().unwrap();
 

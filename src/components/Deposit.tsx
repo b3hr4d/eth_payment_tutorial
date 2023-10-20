@@ -1,4 +1,3 @@
-import { canisterId } from "declarations/hello"
 import { useEffect, useState } from "react"
 import helperAbi from "service/abi.json"
 import { useActorMethod } from "service/hello"
@@ -11,11 +10,12 @@ interface DepositProps {}
 const Deposit: React.FC<DepositProps> = ({}) => {
   const [amount, setAmount] = useState(0)
 
-  const { data: canisterDepositAddress, call } =
-    useActorMethod("deposit_principal")
+  const { data: canisterDepositAddress, call } = useActorMethod(
+    "canister_deposit_principal"
+  )
 
   useEffect(() => {
-    call(canisterId)
+    call()
   }, [])
 
   const { data, isLoading, write } = useContractWrite({
@@ -28,7 +28,7 @@ const Deposit: React.FC<DepositProps> = ({}) => {
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     let amount = e.target.valueAsNumber
-    if (amount && amount < 0) amount = 0
+    if (Number.isNaN(amount) || amount < 0) amount = 0
 
     setAmount(amount)
   }
