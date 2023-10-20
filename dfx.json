@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "hello": {
+      "type": "rust",
+      "candid": "backend/hello/hello.did",
+      "package": "hello",
+      "declarations": {
+        "node_compatibility": true
+      }
+    },
+    "frontend": {
+      "dependencies": [
+        "hello"
+      ],
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": [
+        "out"
+      ],
+      "type": "assets"
+    }
+  },
+  "output_env_file": ".env.local",
+  "version": 1
+}

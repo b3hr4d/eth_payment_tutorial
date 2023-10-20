@@ -1,0 +1,5 @@
+service : {
+  canister_deposit_principal : () -> (text) query;
+  deposit_principal : (text) -> (text) query;
+  verify_transaction : (text) -> (nat, text);
+}
