@@ -1,20 +1,24 @@
-# Building an ETH Payment Canister on the Internet Computer: A Step-by-Step Tutorial
+# Building a Cross-Chain ETH Payment and E-Commerce Platform on the Internet Computer: A Step-by-Step Tutorial
 
 ## Introduction
 
-This comprehensive tutorial guides you through the process of building a decentralized application on the Internet Computer that seamlessly integrates with the Ethereum blockchain. Starting from a basic template, we'll incrementally add advanced features, including a shop, item purchasing, and more.
+This comprehensive tutorial guides you through the process of building a decentralized e-commerce platform on the Internet Computer that can accept Ethereum (ETH) payments, handle withdrawals, and manage a digital storefront. Starting from a basic template, we'll incrementally add features to create a robust, cross-chain solution.
 
 ## Objective
 
-By the end of this tutorial, you will have created a canister on the Internet Computer that:
+The goal of this tutorial is to create a fully functional decentralized e-commerce platform that:
 
-- Accepts Ethereum (ETH) as payment for items.
-- Allows for the withdrawal of ETH to an Ethereum address.
+- Accepts ETH as payment for digital items
 - Integrates with Ethereum smart contracts for payment processing.
-- Implements on-chain verification for transactions.
-- Features a frontend shop where users can purchase items using ETH.
+- Verifies transactions on-chain for added security
+- Allows for the withdrawal of ETH to an Ethereum address
 - Utilizes stable memory to keep track of transactions and items.
-- Implements security measures like function guards.
+- Manages a digital storefront with items for sale
+- Implements access control to secure sensitive operations
+
+## Final Product
+
+<video src="assets/final.mp4" controls title="Title"></video>
 
 ## Prerequisites
 
