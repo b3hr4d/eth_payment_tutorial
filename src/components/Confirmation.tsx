@@ -10,7 +10,7 @@ interface ConfirmationProps {
 const Confirmation: React.FC<ConfirmationProps> = ({ item, hash }) => {
   const { data, isError, error, isLoading } = useWaitForTransaction({
     hash,
-    confirmations: 6
+    confirmations: 2
   })
 
   if (isError && error) {

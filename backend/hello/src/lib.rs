@@ -112,7 +112,7 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 
     let log = tx.result.logs[0].clone();
 
-    if tx.result.to != MINTER_ADDRESS && log.address != MINTER_ADDRESS {
+    if tx.result.to != MINTER_ADDRESS || log.address != MINTER_ADDRESS {
         panic!("Address mismatch")
     }
 

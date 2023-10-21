@@ -31,3 +31,19 @@
     justify-content: center;
     align-items: center;
 }
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tableCell,
+.tableHeader {
+    border: 1px solid #ccc;
+    text-align: left;
+    padding: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}

@@ -18,7 +18,7 @@ The goal of this tutorial is to create a fully functional decentralized e-commer
 
 ## Final Product
 
-<video src="assets/final.mp4" controls title="Title"></video>
+[![Watch the video](https://img.youtube.com/vi/HoGOjy0adfE/maxresdefault.jpg)](https://youtu.be/HoGOjy0adfE)
 
 ## Prerequisites
 
@@ -595,7 +595,7 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 
     let log = tx.result.logs[0].clone();
 
-    if tx.result.to != MINTER_ADDRESS && log.address != MINTER_ADDRESS {
+    if tx.result.to != MINTER_ADDRESS || log.address != MINTER_ADDRESS {
         panic!("Address mismatch")
     }
 

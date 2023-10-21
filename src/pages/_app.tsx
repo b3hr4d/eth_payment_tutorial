@@ -6,6 +6,10 @@ import { ReActorProvider } from "../service/hello"
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   return (
     <ReActorProvider>
+      <nav>
+        <a href="/">Home</a> | <a href="/history">Purchase History</a>
+      </nav>
+      <br />
       <Component {...pageProps} />
     </ReActorProvider>
   )
