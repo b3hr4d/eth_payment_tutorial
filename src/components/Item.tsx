@@ -29,19 +29,21 @@ const Item: React.FC<ItemProps> = ({ name, price }) => {
     args: [canisterDepositAddress]
   })
 
-  if (isLoading) {
-    return <div>Buying {name}…</div>
-  } else if (data?.hash) {
-    return <Confirmation hash={data.hash} item={name} />
-  } else {
-    return (
-      <div className={styles.item}>
-        <h3>{name}</h3>
-        <div>{formatEther(price).toString()} ETH</div>
-        <button onClick={() => write()}>Buy {name}</button>
-      </div>
-    )
-  }
+  return (
+    <div className={styles.item}>
+      {isLoading ? (
+        <div>Buying {name}…</div>
+      ) : data?.hash ? (
+        <Confirmation hash={data.hash} item={name} />
+      ) : (
+        <>
+          <h3>{name}</h3>
+          <div>{formatEther(price).toString()} ETH</div>
+          <button onClick={() => write()}>Buy {name}</button>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default Item
