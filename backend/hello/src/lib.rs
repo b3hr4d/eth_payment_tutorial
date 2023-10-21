@@ -5,18 +5,36 @@ use candid::Nat;
 use serde_json::json;
 mod receipt;
 
-const RPC_URL: &str = "https://eth-sepolia.g.alchemy.com/v2/ZpSPh3E7KZQg4mb3tN8WFXxG4Auntbxp";
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
 const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
 const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
 
 use b3_utils::memory::init_stable_mem_refcell;
-use b3_utils::memory::types::DefaultStableBTreeMap;
+use b3_utils::memory::types::{DefaultStableBTreeMap, DefaultStableCell};
 use std::cell::RefCell;
 
 thread_local! {
     static TRANSACTIONS: RefCell<DefaultStableBTreeMap<String, String>> = init_stable_mem_refcell("trasnactions", 1).unwrap();
     static ITEMS: RefCell<DefaultStableBTreeMap<String, u128>> = init_stable_mem_refcell("items", 2).unwrap();
+    static RPC_URL: RefCell<DefaultStableCell<String>> = init_stable_mem_refcell("rpc_url", 3).unwrap();
+}
+
+fn rpc_url() -> String {
+    RPC_URL.with(|r| r.borrow().get().clone())
+}
+
+#[ic_cdk::init]
+fn init(rpc_url: Option<String>) {
+    if let Some(rpc_url) = rpc_url {
+        RPC_URL.with(|r| r.borrow_mut().set(rpc_url)).unwrap();
+    }
+}
+
+#[ic_cdk::post_upgrade]
+fn post_upgrade(rpc_url: Option<String>) {
+    if let Some(rpc_url) = rpc_url {
+        RPC_URL.with(|r| r.borrow_mut().set(rpc_url)).unwrap();
+    }
 }
 
 #[ic_cdk::query]
@@ -79,7 +97,7 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, Stri
         "params": [hash]
     });
 
-    let request = HttpOutcall::new(&RPC_URL)
+    let request = HttpOutcall::new(&rpc_url())
         .post(&rpc.to_string(), Some(2048))
         .send_with_closure(|response: HttpOutcallResponse| HttpOutcallResponse {
             status: response.status,

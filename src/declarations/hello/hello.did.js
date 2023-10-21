@@ -45,4 +45,4 @@ export const idlFactory = ({ IDL }) => {
     'withdraw' : IDL.Func([IDL.Nat, IDL.Text], [Result_1], []),
   });
 };
-export const init = ({ IDL }) => { return []; };
+export const init = ({ IDL }) => { return [IDL.Opt(IDL.Text)]; };

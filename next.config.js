@@ -14,7 +14,7 @@ module.exports = {
   env: envList,
   output: "export",
   images: {
-    unoptimized: true,
+    unoptimized: true
   },
   staticPageGenerationTimeout: 10000
 }

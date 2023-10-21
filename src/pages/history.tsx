@@ -27,16 +27,14 @@ const purchase: React.FC<purchaseProps> = ({}) => {
           <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr className={styles.tableRow}>
-                <th className={styles.tableHeader}>ID</th>
                 <th className={styles.tableHeader}>Hash</th>
                 <th className={styles.tableHeader}>Buyer</th>
               </tr>
             </thead>
             <tbody className={styles.tableBody}>
-              {data.map(([hash, buyer], id) => {
+              {data.map(([hash, buyer]) => {
                 return (
-                  <tr key={id} className={styles.tableRow}>
-                    <td className={styles.tableCell}>{id + 1}</td>
+                  <tr key={hash} className={styles.tableRow}>
                     <td className={styles.tableCell}>
                       <a href={`https://sepolia.etherscan.io/tx/${hash}`}>
                         {hash}
