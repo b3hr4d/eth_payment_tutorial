@@ -4,6 +4,14 @@
 
 This comprehensive tutorial guides you through the process of building a decentralized e-commerce platform on the Internet Computer that can accept Ethereum (ETH) payments, handle withdrawals, and manage a digital storefront. Starting from a basic template, we'll incrementally add features to create a robust, cross-chain solution.
 
+## Why I Made This Tutorial?
+
+This tutorial is a hands-on guide designed for developers new to the Internet Computer blockchain. I've created a set of libraries to make development easier and more enjoyable, and this tutorial walks you through the process of building a decentralized ETH payment system using these libraries.
+
+We'll explore key features like HTTP outcalls and stable memory, providing a solid foundation for anyone looking to bring their dream project to life on the Internet Computer. Although this tutorial uses my specific set of methods and libraries, there are many other tools and techniques you could use.
+
+For example, you could integrate the [`ic-eth-rpc`](https://github.com/internet-computer-protocol/ic-eth-rpc) package for Ethereum RPC calls or accept ckETH as a payment method. The main goal here is to demonstrate the Internet Computer's flexibility and ease of use, especially when it comes to confirming transactions on-chain.
+
 ## Objective
 
 The goal of this tutorial is to create a fully functional decentralized e-commerce platform that:
@@ -27,7 +35,7 @@ The goal of this tutorial is to create a fully functional decentralized e-commer
 - [Rust](https://www.rust-lang.org/tools/install)
 - Basic understanding of Ethereum and smart contracts
 
-## Step 1: Clone the Starter Repository
+## Step 1: Clone the Starter Repository and Run the Project Locally
 
 We'll begin by cloning the [`ic-rust-nextjs`](https://github.com/b3hr4d/ic-rust-nextjs) repository, which serves as our starter template.
 
@@ -48,7 +56,7 @@ To clone the repository, open your terminal and run:
 git clone https://github.com/b3hr4d/ic-rust-nextjs.git
 ```
 
-## Step 2: Run the Project Locally
+### Running the Project Locally
 
 After cloning the repository, the next step is to run the project locally to ensure everything is set up correctly. Follow the commands below based on your package manager (Yarn or npm).
 
@@ -96,7 +104,7 @@ Open your browser and navigate to [http://localhost:3000](http://localhost:3000)
 
 ![Alt text](assets/starting.png)
 
-## Step 3: Modify the Backend for ETH Deposits
+## Step 2: Modify the Backend for ETH Deposits
 
 In this step, we'll modify the backend to include a function that generates a deposit principal from a canister ID. This is essential for converting SepoliaETH into ckSepoliaETH, as per the ckEth documentation.
 
@@ -145,10 +153,6 @@ fn deposit_principal(principal: String) -> String {
 
 5. **Hex String**: Finally, we convert the bytes32 array into a hex string with a "0x" prefix, which can be used as an argument for the smart contract.
 
-## Step 4: Deploy Backend and Update Frontend
-
-In this step, we'll deploy the modified backend canister to a local server and update the frontend code to make use of the new `deposit_principal` function.
-
 ### Deploy the Modified Backend Canister
 
 After making the changes to the backend, deploy the canister to your local Internet Computer environment using the following command:
@@ -177,7 +181,7 @@ const { call, data, error, loading } = useActorMethod("deposit_principal")
 
 ![Alt text](assets/deposit_principal.png)
 
-## Step 5: Integrate MetaMask and Call the Minter Helper Contract
+## Step 3: Integrate MetaMask and Call the Minter Helper Contract
 
 In this step, we'll integrate MetaMask using the [wagmi](https://wagmi.sh) library and set up the frontend to call the minter helper contract's deposit function.
 
@@ -285,7 +289,7 @@ You should see a "Connect Wallet" button on your browser, similar to the screens
 ![Alt text](assets/connect_wallet.png)
 Clicking on the button should open a MetaMask popup asking for permission to connect. After connecting, you should see your wallet address on the screen.
 
-## Step 6: Prepare Minter Helper Contract and Enable Deposits
+## Step 4: Prepare Minter Helper Contract and Enable Deposits
 
 In this step, we'll prepare the minter helper contract for calls and enable ETH deposits through the frontend.
 
@@ -392,7 +396,7 @@ You should have small amount of Sepolia ETH in your wallet. you can get some usi
 3. **Check the Output**: After confirming, you should see a transaction hash.
    ![Alt text](assets/deposit_result.png)
 
-## Step 7: Wait for Transaction Confirmation and Verify Payment
+## Step 5: Wait for Transaction Confirmation and Verify Payment
 
 In this step, we'll implement a mechanism to wait for transaction confirmations before verifying the payment inside the canister.
 
@@ -459,7 +463,7 @@ return <Confirmation hash={data.hash} />
 2. **Check the Output**: You should see the confirmation process in action. Once the specified number of confirmations is reached, the transaction status will be displayed.
    ![Alt text](assets/confirmation.png)
 
-## Step 8: Verify Transaction On-Chain Inside the Canister
+## Step 6: Verify Transaction On-Chain Inside the Canister
 
 In this step, we'll verify the Ethereum transaction on-chain by calling the Ethereum JSON-RPC API from within the canister.
 
@@ -555,7 +559,7 @@ async fn get_receipt(hash: String) -> String {
 3. **Test the Function**: Inside the Candid UI, you should see the `get_receipt` function. Test it by passing a transaction hash and observing the response.
    ![Alt text](assets/receipt.png)
 
-## Step 9: On-Chain Verification of Transactions
+## Step 7: On-Chain Verification of Transactions
 
 In this step, we'll create a function to verify Ethereum transactions on-chain. This function will use the logs emitted by the smart contract to verify the transaction details.
 
@@ -645,7 +649,7 @@ fn canister_deposit_principal() -> String {
 3. **Test the Functions**: Inside the Candid UI, you should see the `verify_transaction` and `canister_deposit_principal` functions. Test them by passing a transaction hash and observing the response.
    ![Alt text](assets/candid_verify.png)
 
-## Step 10: Frontend Update for On-Chain Verification
+## Step 8: Frontend Update for On-Chain Verification
 
 In this step, we'll update the frontend to call the `verify_transaction` function after the transaction has been confirmed on-chain.
 
@@ -719,7 +723,7 @@ return <VerifyTransaction hash={data.transactionHash} />
 2. **Check the Output**: You should see the transaction details displayed once the transaction is confirmed and procceed on-chain.
    ![Alt text](assets/verified_onchain.png)
 
-## Step 11: Deploying to the Internet Computer Mainnet
+## Step 9: Deploying to the Internet Computer Mainnet
 
 In this step, we'll deploy our project to the Internet Computer mainnet. This involves a few key steps:
 
@@ -755,7 +759,7 @@ Upon successful deployment, you should see output similar to this in your termin
 Here's what you should see:
 ![Alt text](assets/alchemy_logs.png)
 
-## Step 12: Integrating with ICRC Standard
+## Step 10: Integrating with ICRC Standard
 
 In this step, we'll integrate our canister with the ckETH ICRC standard to show the balance and enable ETH withdrawal.
 
@@ -844,7 +848,7 @@ async fn approve(amount: Nat) -> ICRC2ApproveResult {
 2. **Open Candid UI**: Navigate to the Candid UI and test the `approve` function.
    ![Alt text](assets/approve.png)
 
-## Step 13: Creating the Withdraw Function
+## Step 11: Creating the Withdraw Function
 
 In this step, we'll create a `withdraw` function that allows users to withdraw ETH from the canister.
 
@@ -906,7 +910,7 @@ async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {
 2. **Open Candid UI**: Navigate to the Candid UI and test the `withdraw` function. Make sure to enter the amount in wei.
    ![Alt text](assets/withdraw.png)
 
-## Step 14: Adding Security and Functionalities
+## Step 12: Adding Security and Functionalities
 
 In this step, we'll add some security measures and functionalities to our canister.
 
@@ -1040,7 +1044,7 @@ async fn buy_item(item: String, hash: String) -> u64 {
    Check the items inside the Candid UI using `get_items`.
    ![Alt text](assets/get_items.png)
 
-## Step 15: Frontend Integration for Shop and Item Purchase
+## Step 13: Frontend Integration for Shop and Item Purchase
 
 In this step, we'll integrate the frontend to display a shop and handle item purchases.
 
