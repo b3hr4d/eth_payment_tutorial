@@ -795,20 +795,56 @@ use candid::Principal;
 #[ic_cdk::update]
 async fn balance() -> Nat {
     let account = ICRCAccount::new(ic_cdk::id(), None);
-    let ledger = Principal::from_text(LEDGER).unwrap();
 
-    ICRC1(ledger).balance_of(account).await.unwrap()
+    ICRC1::from(LEDGER).balance_of(account).await.unwrap()
 }
 ```
 
-#### Testing the Balance Function
+#### Testing the ckETH Balance Function
 
 1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic` to upgrade canister.
 
 2. **Open Candid UI**: Navigate to the Candid UI and test the `balance` function. Note that the minting process might take some time.
    ![Alt text](assets/balance.png)
 
-### Approving the Minter
+### Creating the Transfer Function
+
+#### Understanding the Function
+
+The `transfer` function allows the canister to transfer a specified amount of ckETH to another account.
+The function uses the `ICRC1` trait from `b3_utils` to transfer the specified amount of ckETH to the recipient.
+
+Here's the code snippet for the function:
+
+```rust
+use b3_utils::ledger::{ICRC1TransferArgs, ICRC1TransferResult};
+use std::str::FromStr;
+
+#[ic_cdk::update]
+async fn transfer(to: String, amount: Nat) -> ICRC1TransferResult {
+    let to = ICRCAccount::from_str(&to).unwrap();
+
+    let transfer_args = ICRC1TransferArgs {
+        to,
+        amount,
+        from_subaccount: None,
+        fee: None,
+        memo: None,
+        created_at_time: None,
+    };
+
+    ICRC1::from(LEDGER).transfer(transfer_args).await.unwrap()
+}
+```
+
+#### Testing the Transfer Function
+
+1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic` to upgrade canister.
+
+2. **Open Candid UI**: Navigate to the Candid UI and test the `transfer` function by passing the recipient's [ICRCAccount](https://forum.dfinity.org/t/icrc-1-account-human-readable-format/14682/56) comptible format string and the amount of ckETH to transfer.
+   ![Alt text](assets/transfer.png)
+
+### Approving the Minter to Spend ckETH
 
 #### Understanding the Function
 
@@ -821,7 +857,6 @@ use b3_utils::ledger::{ICRC2ApproveArgs, ICRC2ApproveResult, ICRC2};
 
 #[ic_cdk::update]
 async fn approve(amount: Nat) -> ICRC2ApproveResult {
-    let ledger = Principal::from_text(LEDGER).unwrap();
     let minter = Principal::from_text(&MINTER).unwrap();
 
     let spender = ICRCAccount::new(minter, None);
@@ -837,7 +872,7 @@ async fn approve(amount: Nat) -> ICRC2ApproveResult {
         from_subaccount: None,
     };
 
-    ICRC2(ledger).approve(args).await.unwrap()
+    ICRC2::from(LEDGER).approve(args).await.unwrap()
 }
 ```
 

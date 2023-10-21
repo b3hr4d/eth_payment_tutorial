@@ -162,6 +162,26 @@ async fn balance() -> Nat {
     ICRC1::from(LEDGER).balance_of(account).await.unwrap()
 }
 
+// Transfer -----------------------------
+use b3_utils::ledger::{ICRC1TransferArgs, ICRC1TransferResult};
+use std::str::FromStr;
+
+#[ic_cdk::update(guard = "caller_is_controller")]
+async fn transfer(to: String, amount: Nat) -> ICRC1TransferResult {
+    let to = ICRCAccount::from_str(&to).unwrap();
+
+    let transfer_args = ICRC1TransferArgs {
+        to,
+        amount,
+        from_subaccount: None,
+        fee: None,
+        memo: None,
+        created_at_time: None,
+    };
+
+    ICRC1::from(LEDGER).transfer(transfer_args).await.unwrap()
+}
+
 // Approve -----------------------------
 use b3_utils::ledger::{ICRC2ApproveArgs, ICRC2ApproveResult, ICRC2};
 

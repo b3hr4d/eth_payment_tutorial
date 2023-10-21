@@ -4,14 +4,21 @@ import { useActorMethod } from "service/hello"
 import styles from "styles/History.module.css"
 
 import Image from "next/image"
+import { formatEther } from "viem"
 
 interface purchaseProps {}
 
 const purchase: React.FC<purchaseProps> = ({}) => {
   const { loading, error, data, call } = useActorMethod("get_transaction_list")
+  const {
+    data: balance,
+    loading: loadingBalance,
+    call: callBalance
+  } = useActorMethod("balance")
 
   useEffect(() => {
     call()
+    callBalance()
   }, [])
 
   return (
@@ -21,6 +28,12 @@ const purchase: React.FC<purchaseProps> = ({}) => {
       </Head>
       <main className={styles.main}>
         <h3 className={styles.title}>Purchase History</h3>
+        {loadingBalance && <div>Fetching balance...</div>}
+        {balance ? (
+          <div className={styles.balanceValue}>
+            Balance: {formatEther(balance)}ETH
+          </div>
+        ) : null}
         {loading && <div>Processing Purchase on ICP...</div>}
         {error ? <div>{error.toString()}</div> : null}
         {data ? (
