@@ -26,7 +26,7 @@ The goal of this tutorial is to create a fully functional decentralized e-commer
 
 ## Final Product(YouTube Video)
 
-[![Watch the video](https://img.youtube.com/vi/HoGOjy0adfE/maxresdefault.jpg)](https://youtu.be/HoGOjy0adfE)
+[![Watch the video](https://img.youtube.com/vi/lPNOqKwPRlE/maxresdefault.jpg)](https://youtu.be/lPNOqKwPRlE)
 
 ## Prerequisites
 
