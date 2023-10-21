@@ -100,7 +100,7 @@ In this step, we'll modify the backend to include a function that generates a de
 First, we need to install the [b3_utils](https://docs.rs/b3_utils/latest/b3_utils/) Rust crate. Open your `Cargo.toml` file and add the following line under `[dependencies]`:
 
 ```toml
-b3_utils = "0.7.1"
+b3_utils = "0.7.2"
 ```
 
 or run this command:

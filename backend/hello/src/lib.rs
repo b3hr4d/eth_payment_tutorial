@@ -75,4 +75,36 @@ fn canister_deposit_principal() -> String {
     vec_to_hex_string_with_0x(bytes32)
 }
 
+// const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
+// const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
+// use b3_utils::ledger::{ICRCAccount, ICRC1};
+// #[ic_cdk::update]
+// async fn balance() -> Nat {
+//     let account = ICRCAccount::new(ic_cdk::id(), None);
+//     let ledger = Principal::from_text(LEDGER).unwrap();
+
+//     ICRC1(ledger).balance_of(account).await.unwrap()
+// }
+
+// #[ic_cdk::update]
+// async fn approve(amount: Nat) -> ICRC2ApproveResult {
+//     let ledger = Principal::from_text(LEDGER).unwrap();
+//     let minter = Principal::from_text(&MINTER).unwrap();
+
+//     let spender = ICRCAccount::new(minter, None);
+
+//     let args = ICRC2ApproveArgs {
+//         amount,
+//         spender,
+//         created_at_time: None,
+//         expected_allowance: None,
+//         expires_at: None,
+//         fee: None,
+//         memo: None,
+//         from_subaccount: None,
+//     };
+
+//     ICRC2(ledger).approve(args).await.unwrap()
+// }
+
 ic_cdk::export_candid!();
