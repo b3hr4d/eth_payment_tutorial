@@ -5,6 +5,8 @@ import { formatEther } from "viem"
 import { useContractWrite } from "wagmi"
 import Confirmation from "./Confirmation"
 
+import styles from "styles/Item.module.css"
+
 interface ItemProps {
   name: string
   price: bigint
@@ -33,7 +35,7 @@ const Item: React.FC<ItemProps> = ({ name, price }) => {
     return <Confirmation hash={data.hash} item={name} />
   } else {
     return (
-      <div>
+      <div className={styles.item}>
         <h3>{name}</h3>
         <div>{formatEther(price).toString()} ETH</div>
         <button onClick={() => write()}>Buy {name}</button>

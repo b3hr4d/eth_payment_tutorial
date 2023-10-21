@@ -396,7 +396,7 @@ You should have small amount of Sepolia ETH in your wallet. you can get some usi
 3. **Check the Output**: After confirming, you should see a transaction hash.
    ![Alt text](assets/deposit_result.png)
 
-## Step 5: Wait for Transaction Confirmation and Verify Payment
+## Step 5: Wait for Transaction Confirmation
 
 In this step, we'll implement a mechanism to wait for transaction confirmations before verifying the payment inside the canister.
 
@@ -463,7 +463,7 @@ return <Confirmation hash={data.hash} />
 2. **Check the Output**: You should see the confirmation process in action. Once the specified number of confirmations is reached, the transaction status will be displayed.
    ![Alt text](assets/confirmation.png)
 
-## Step 6: Verify Transaction On-Chain Inside the Canister
+## Step 6: Fetching Transaction On-Chain
 
 In this step, we'll verify the Ethereum transaction on-chain by calling the Ethereum JSON-RPC API from within the canister.
 
@@ -743,13 +743,25 @@ Run the following command to deploy your canister to the mainnet:
 yarn deploy --network=ic
 ```
 
-Upon successful deployment, you should see output similar to this in your terminal:
+Alternatively, you can choose to deploy only the backend to the mainnet and run the frontend locally. To deploy just the backend, use:
 
-![Alt text](assets/mainnet_terminal.png)
+```bash
+yarn deploy hello --network=ic
+```
+
+To run the frontend locally, execute:
+
+```bash
+yarn dev
+```
+
+Upon successful deployment of the backend, you should see output similar to this in your terminal:
+
+![Alt text](upload://g7jsWyoMAZesvi1wtzLjK3RW7lJ.png)
 
 ### Testing on Mainnet
 
-1. **Open the Frontend**: Navigate to the frontend URL provided in the terminal.
+1. **Open the Frontend**: If you've deployed the frontend to the mainnet, navigate to the frontend URL provided in the terminal. If you're running the frontend locally, you can access it via `http://localhost:3000` or the URL provided in your local development server.
 
 2. **Initiate a Transaction**: Initiate a deposit transaction and confirm it.
    ![Alt text](assets/mainnet_deposit.png)

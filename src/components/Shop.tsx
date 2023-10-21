@@ -2,6 +2,8 @@ import { useEffect } from "react"
 import { useActorMethod } from "service/hello"
 import Item from "./Item"
 
+import styles from "styles/Shop.module.css"
+
 interface ShopProps {}
 
 const Shop: React.FC<ShopProps> = ({}) => {
@@ -12,14 +14,7 @@ const Shop: React.FC<ShopProps> = ({}) => {
   }, [])
 
   return (
-    <div
-      style={{
-        marginTop: 10,
-        display: "grid",
-        gridTemplateColumns: "repeat(2, 1fr)",
-        gridGap: 20
-      }}
-    >
+    <div className={styles.container}>
       {loading ? (
         <div>Loading...</div>
       ) : (

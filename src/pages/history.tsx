@@ -31,7 +31,7 @@ const purchase: React.FC<purchaseProps> = ({}) => {
         {loadingBalance && <div>Fetching balance...</div>}
         {balance ? (
           <div className={styles.balanceValue}>
-            Balance: {formatEther(balance)}ETH
+            Balance: {formatEther(balance)} ckETH
           </div>
         ) : null}
         {loading && <div>Processing Purchase on ICP...</div>}

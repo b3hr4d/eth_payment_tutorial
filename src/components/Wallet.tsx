@@ -35,10 +35,8 @@ const Wallet: React.FC<WalletProps> = ({}) => {
     return (
       <main>
         Connected to: {address}
-        <br />
-        <Shop />
-        <br />
         <button onClick={() => disconnect()}>Disconnect</button>
+        <Shop />
       </main>
     )
   return (
