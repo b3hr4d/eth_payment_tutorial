@@ -1,4 +1,31 @@
+type ICRC2ApproveError = variant {
+  GenericError : record { message : text; error_code : nat };
+  TemporarilyUnavailable;
+  Duplicate : record { duplicate_of : nat };
+  BadFee : record { expected_fee : nat };
+  AllowanceChanged : record { current_allowance : nat };
+  CreatedInFuture : record { ledger_time : nat64 };
+  TooOld;
+  Expired : record { ledger_time : nat64 };
+  InsufficientFunds : record { balance : nat };
+};
+type Result = variant { Ok : nat; Err : ICRC2ApproveError };
+type Result_1 = variant { Ok : RetrieveEthRequest; Err : WithdrawalError };
+type RetrieveEthRequest = record { block_index : nat };
+type WithdrawalError = variant {
+  TemporarilyUnavailable : text;
+  InsufficientAllowance : record { allowance : nat };
+  AmountTooLow : record { min_withdrawal_amount : nat };
+  InsufficientFunds : record { balance : nat };
+};
 service : {
+  approve : (nat) -> (Result);
+  balance : () -> (nat);
+  buy_item : (text, text) -> (nat64);
   canister_deposit_principal : () -> (text) query;
+  get_items : () -> (vec record { text; nat }) query;
+  get_transaction_list : () -> (vec record { text; text }) query;
+  set_item : (text, nat) -> ();
   verify_transaction : (text) -> (nat, text);
+  withdraw : (nat, text) -> (Result_1);
 }

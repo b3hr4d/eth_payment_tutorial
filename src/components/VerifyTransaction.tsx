@@ -1,27 +1,30 @@
 import { useEffect } from "react"
 import { useActorMethod } from "service/hello"
-import { formatEther } from "viem"
 
 interface VerifyTransactionProps {
+  item: string
   hash: string
 }
 
-const VerifyTransaction: React.FC<VerifyTransactionProps> = ({ hash }) => {
-  const { loading, error, data, call } = useActorMethod("verify_transaction")
+const VerifyTransaction: React.FC<VerifyTransactionProps> = ({
+  item,
+  hash
+}) => {
+  const { loading, error, data, call } = useActorMethod("buy_item")
 
   useEffect(() => {
-    call(hash)
+    call(item, hash)
   }, [hash])
 
   if (loading) {
-    return <div>Processing…</div>
+    return <div>Processing Purchase on ICP...</div>
   } else if (error) {
     return <div>{error.toString()}</div>
   } else if (data) {
     return (
       <div>
-        Transaction(<b>{hash}</b>) with <b>{formatEther(data[0])}</b>ETH from{" "}
-        <b>{data[1]}</b> is confirmed on-chain.
+        <h3>{item} bought!</h3>
+        <div>Purchase ID: {data.toString()}</div>
       </div>
     )
   } else {

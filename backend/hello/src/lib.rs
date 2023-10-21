@@ -1,12 +1,75 @@
-use b3_utils::outcall::{HttpOutcall, HttpOutcallResponse};
+use b3_utils::caller_is_controller;
 use b3_utils::{hex_string_with_0x_to_nat, vec_to_hex_string_with_0x, Subaccount};
+use b3_utils::{HttpOutcall, HttpOutcallResponse};
 use candid::Nat;
 use serde_json::json;
 mod receipt;
 
 const RPC_URL: &str = "https://eth-sepolia.g.alchemy.com/v2/ZpSPh3E7KZQg4mb3tN8WFXxG4Auntbxp";
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
-const MINIMUM_AMOUNT: u128 = 10_000_000_000_000_000;
+const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
+const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
+
+use b3_utils::memory::init_stable_mem_refcell;
+use b3_utils::memory::types::DefaultStableBTreeMap;
+use std::cell::RefCell;
+
+thread_local! {
+    static TRANSACTIONS: RefCell<DefaultStableBTreeMap<String, String>> = init_stable_mem_refcell("trasnactions", 1).unwrap();
+    static ITEMS: RefCell<DefaultStableBTreeMap<String, u128>> = init_stable_mem_refcell("items", 2).unwrap();
+}
+
+#[ic_cdk::query]
+fn get_transaction_list() -> Vec<(String, String)> {
+    TRANSACTIONS.with(|t| {
+        t.borrow()
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    })
+}
+
+#[ic_cdk::update(guard = "caller_is_controller")]
+fn set_item(item: String, price: u128) {
+    ITEMS.with(|p| p.borrow_mut().insert(item, price));
+}
+
+#[ic_cdk::query]
+fn get_items() -> Vec<(String, u128)> {
+    ITEMS.with(|p| {
+        p.borrow()
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    })
+}
+
+#[ic_cdk::update]
+async fn buy_item(item: String, hash: String) -> u64 {
+    if TRANSACTIONS.with(|t| t.borrow().contains_key(&hash)) {
+        panic!("Transaction already processed")
+    }
+
+    let price = ITEMS.with(|p| {
+        p.borrow()
+            .get(&item)
+            .map(|p| p.clone())
+            .unwrap_or_else(|| panic!("Item not found"))
+    });
+
+    let (amount, from) = verify_transaction(hash.clone()).await;
+
+    if amount < price {
+        panic!("Amount too low")
+    }
+
+    TRANSACTIONS.with(|t| {
+        let mut t = t.borrow_mut();
+        t.insert(hash, from);
+
+        t.len() as u64
+    })
+}
 
 async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, String> {
     let rpc = json!({
@@ -59,10 +122,6 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 
     let amount = hex_string_with_0x_to_nat(log.data).unwrap();
 
-    if amount < MINIMUM_AMOUNT {
-        panic!("Amount too low")
-    }
-
     (amount, tx.result.from)
 }
 
@@ -74,37 +133,74 @@ fn canister_deposit_principal() -> String {
 
     vec_to_hex_string_with_0x(bytes32)
 }
+// Balance -----------------------------
+use b3_utils::ledger::{ICRCAccount, ICRC1};
+use candid::Principal;
 
-// const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
-// const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
-// use b3_utils::ledger::{ICRCAccount, ICRC1};
-// #[ic_cdk::update]
-// async fn balance() -> Nat {
-//     let account = ICRCAccount::new(ic_cdk::id(), None);
-//     let ledger = Principal::from_text(LEDGER).unwrap();
+#[ic_cdk::update]
+async fn balance() -> Nat {
+    let account = ICRCAccount::new(ic_cdk::id(), None);
 
-//     ICRC1(ledger).balance_of(account).await.unwrap()
-// }
+    ICRC1::from(LEDGER).balance_of(account).await.unwrap()
+}
 
-// #[ic_cdk::update]
-// async fn approve(amount: Nat) -> ICRC2ApproveResult {
-//     let ledger = Principal::from_text(LEDGER).unwrap();
-//     let minter = Principal::from_text(&MINTER).unwrap();
+// Approve -----------------------------
+use b3_utils::ledger::{ICRC2ApproveArgs, ICRC2ApproveResult, ICRC2};
 
-//     let spender = ICRCAccount::new(minter, None);
+#[ic_cdk::update(guard = "caller_is_controller")]
+async fn approve(amount: Nat) -> ICRC2ApproveResult {
+    let minter = Principal::from_text(&MINTER).unwrap();
 
-//     let args = ICRC2ApproveArgs {
-//         amount,
-//         spender,
-//         created_at_time: None,
-//         expected_allowance: None,
-//         expires_at: None,
-//         fee: None,
-//         memo: None,
-//         from_subaccount: None,
-//     };
+    let spender = ICRCAccount::from(minter);
 
-//     ICRC2(ledger).approve(args).await.unwrap()
-// }
+    let args = ICRC2ApproveArgs {
+        amount,
+        spender,
+        created_at_time: None,
+        expected_allowance: None,
+        expires_at: None,
+        fee: None,
+        memo: None,
+        from_subaccount: None,
+    };
 
+    ICRC2::from(LEDGER).approve(args).await.unwrap()
+}
+// Withdrawal -----------------------------
+use candid::{CandidType, Deserialize};
+
+#[derive(CandidType, Deserialize)]
+pub struct WithdrawalArg {
+    pub amount: Nat,
+    pub recipient: String,
+}
+
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub struct RetrieveEthRequest {
+    pub block_index: Nat,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum WithdrawalError {
+    AmountTooLow { min_withdrawal_amount: Nat },
+    InsufficientFunds { balance: Nat },
+    InsufficientAllowance { allowance: Nat },
+    TemporarilyUnavailable(String),
+}
+
+type WithdrawalResult = Result<RetrieveEthRequest, WithdrawalError>;
+
+use b3_utils::InterCall;
+
+#[ic_cdk::update(guard = "caller_is_controller")]
+async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {
+    let withraw = WithdrawalArg { amount, recipient };
+
+    InterCall::from(MINTER)
+        .call("withdraw_eth", withraw)
+        .await
+        .unwrap()
+}
+
+// Export -----------------------------
 ic_cdk::export_candid!();

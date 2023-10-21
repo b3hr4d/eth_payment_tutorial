@@ -11,11 +11,11 @@ function HomePage() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Internet Computer</title>
+        <title>ETH payment</title>
       </Head>
       <main className={styles.main}>
         <h3 className={styles.title}>
-          Welcome to the Internet Computer starter template
+          Direct Ethereum Payment on the Internet Computer
         </h3>
         <WagmiConfig config={config}>
           <Wallet />

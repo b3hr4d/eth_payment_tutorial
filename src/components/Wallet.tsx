@@ -1,6 +1,6 @@
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { MetaMaskConnector } from "wagmi/connectors/metaMask"
-import Deposit from "./Deposit"
+import Shop from "./Shop"
 
 interface WalletProps {}
 
@@ -17,10 +17,8 @@ const Wallet: React.FC<WalletProps> = ({}) => {
     return (
       <main>
         Connected to: {address}
-        <br />
-        <Deposit />
-        <br />
         <button onClick={() => disconnect()}>Disconnect</button>
+        <Shop />
       </main>
     )
   return <button onClick={() => connect()}>Connect Wallet</button>

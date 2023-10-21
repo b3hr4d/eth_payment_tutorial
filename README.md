@@ -2,14 +2,19 @@
 
 ## Introduction
 
-This tutorial aims to guide you through the process of building a canister on the Internet Computer that can accept and withdraw Ethereum (ETH). We'll start with a starter template and gradually add features and functionalities.
+This comprehensive tutorial guides you through the process of building a decentralized application on the Internet Computer that seamlessly integrates with the Ethereum blockchain. Starting from a basic template, we'll incrementally add advanced features, including a shop, item purchasing, and more.
 
 ## Objective
 
-The goal is to create a canister that:
+By the end of this tutorial, you will have created a canister on the Internet Computer that:
 
-- Accepts ETH as payment
-- Allows for the withdrawal of ETH
+- Accepts Ethereum (ETH) as payment for items.
+- Allows for the withdrawal of ETH to an Ethereum address.
+- Integrates with Ethereum smart contracts for payment processing.
+- Implements on-chain verification for transactions.
+- Features a frontend shop where users can purchase items using ETH.
+- Utilizes stable memory to keep track of transactions and items.
+- Implements security measures like function guards.
 
 ## Prerequisites
 
@@ -38,10 +43,6 @@ To clone the repository, open your terminal and run:
 ```bash
 git clone https://github.com/b3hr4d/ic-rust-nextjs.git
 ```
-
-Certainly, Behrad. Here's the continuation of the README file, detailing the steps to run the project locally after cloning.
-
----
 
 ## Step 2: Run the Project Locally
 
@@ -100,7 +101,7 @@ In this step, we'll modify the backend to include a function that generates a de
 First, we need to install the [b3_utils](https://docs.rs/b3_utils/latest/b3_utils/) Rust crate. Open your `Cargo.toml` file and add the following line under `[dependencies]`:
 
 ```toml
-b3_utils = "0.7.2"
+b3_utils = "0.8.0"
 ```
 
 or run this command:
@@ -340,15 +341,7 @@ const Deposit: React.FC<DepositProps> = ({}) => {
     return (
       <div>
         <input type="number" value={amount} onChange={changeHandler} />
-        <button
-          onClick={() =>
-            write({
-              args: [canisterDepositAddress]
-            })
-          }
-        >
-          Deposit
-        </button>
+        <button onClick={() => write()}>Deposit</button>
       </div>
     )
   }
@@ -585,7 +578,6 @@ Here's the code snippet for the function:
 
 ```rust
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
-const MINIMUM_AMOUNT: u128 = 10000000000000000;
 
 use b3_utils::hex_string_with_0x_to_nat;
 use candid::Nat;
@@ -609,10 +601,6 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 
     let amount = hex_string_with_0x_to_nat(log.data).unwrap();
 
-    if amount < MINIMUM_AMOUNT {
-        panic!("Amount too low")
-    }
-
     (amount, tx.result.from)
 }
 ```
@@ -627,7 +615,7 @@ The function `verify_transaction` performs the following tasks:
 
 - **Verify Principal**: It verifies that the principal in the logs matches the canister's deposit principal. The principal is found in `log.topics[2]`.
 
-- **Verify Amount**: It verifies that the amount in the logs is above the minimum required amount.
+- **Return Transaction Details**: It returns the amount and the sender's address.
 
 ### Create a Function to Return Canister Deposit Principal
 
@@ -726,3 +714,517 @@ return <VerifyTransaction hash={data.transactionHash} />
 
 2. **Check the Output**: You should see the transaction details displayed once the transaction is confirmed and procceed on-chain.
    ![Alt text](assets/verified_onchain.png)
+
+## Step 11: Deploying to the Internet Computer Mainnet
+
+In this step, we'll deploy our project to the Internet Computer mainnet. This involves a few key steps:
+
+### Topping Up Your Wallet with Cycles
+
+Before deploying to the mainnet, you'll need to ensure that your wallet has enough cycles.
+
+1. **Quickstart**: Run `dfx quickstart` in your terminal and follow the process to top up your wallet.
+
+2. **Faucet Cycles**: Alternatively, you can get some free cycles from the DFINITY [cycles faucet](https://forum.dfinity.org/t/cycles-faucet-is-now-live).
+
+### Deploying the Canister
+
+Run the following command to deploy your canister to the mainnet:
+
+```bash
+yarn deploy --network=ic
+```
+
+Upon successful deployment, you should see output similar to this in your terminal:
+
+![Alt text](assets/mainnet_terminal.png)
+
+### Testing on Mainnet
+
+1. **Open the Frontend**: Navigate to the frontend URL provided in the terminal.
+
+2. **Initiate a Transaction**: Initiate a deposit transaction and confirm it.
+   ![Alt text](assets/mainnet_deposit.png)
+
+3. **Check Alchemy Logs**: Open your Alchemy dashboard to check the logs. You should see 13 different calls to the JSON-RPC, which collect consensus on the result and then send it to your canister. This ensures that you can trust the whole process as a successful payment.
+
+Here's what you should see:
+![Alt text](assets/alchemy_logs.png)
+
+## Step 12: Integrating with ICRC Standard
+
+In this step, we'll integrate our canister with the ckETH ICRC standard to show the balance and enable ETH withdrawal.
+
+### Adding Ledger Feature to `b3_utils`
+
+First, add the "ledger" feature to the `b3_utils` crate in your `Cargo.toml`:
+
+```toml
+b3_utils = { version = "0.8.0", features = ["ledger"] }
+```
+
+### Setting Up Ledger and Minter Constants
+
+Add the following lines at the top of your Rust code to specify the ledger and minter canister IDs:
+
+```rust
+const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
+const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
+```
+
+### Creating the Balance Function
+
+#### Understanding the Function
+
+The `balance` function uses the `ICRC1` trait from `b3_utils` to fetch the balance of the canister in ckETH.
+
+Here's the code snippet for the function:
+
+```rust
+use b3_utils::ledger::{ICRCAccount, ICRC1};
+use candid::Principal;
+
+#[ic_cdk::update]
+async fn balance() -> Nat {
+    let account = ICRCAccount::new(ic_cdk::id(), None);
+    let ledger = Principal::from_text(LEDGER).unwrap();
+
+    ICRC1(ledger).balance_of(account).await.unwrap()
+}
+```
+
+#### Testing the Balance Function
+
+1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic` to upgrade canister.
+
+2. **Open Candid UI**: Navigate to the Candid UI and test the `balance` function. Note that the minting process might take some time.
+   ![Alt text](assets/balance.png)
+
+### Approving the Minter
+
+#### Understanding the Function
+
+The `approve` function uses the `ICRC2` trait from `b3_utils` to approve the minter to spend your ckETH. This is a one-time action if you approve a large amount.
+
+Here's the code snippet for the function:
+
+```rust
+use b3_utils::ledger::{ICRC2ApproveArgs, ICRC2ApproveResult, ICRC2};
+
+#[ic_cdk::update]
+async fn approve(amount: Nat) -> ICRC2ApproveResult {
+    let ledger = Principal::from_text(LEDGER).unwrap();
+    let minter = Principal::from_text(&MINTER).unwrap();
+
+    let spender = ICRCAccount::new(minter, None);
+
+    let args = ICRC2ApproveArgs {
+        amount,
+        spender,
+        created_at_time: None,
+        expected_allowance: None,
+        expires_at: None,
+        fee: None,
+        memo: None,
+        from_subaccount: None,
+    };
+
+    ICRC2(ledger).approve(args).await.unwrap()
+}
+```
+
+#### Testing the Approve Function
+
+1. **Deploy to Mainnet**: Again upgrade the canister using `yarn deploy hello --network=ic`.
+
+2. **Open Candid UI**: Navigate to the Candid UI and test the `approve` function.
+   ![Alt text](assets/approve.png)
+
+## Step 13: Creating the Withdraw Function
+
+In this step, we'll create a `withdraw` function that allows users to withdraw ETH from the canister.
+
+### Defining Types from the Minter Canister
+
+First, define some types that will be used for the withdrawal operation. These types are derived from the minter canister.
+
+```rust
+use candid::{CandidType, Deserialize};
+
+#[derive(CandidType, Deserialize)]
+pub struct WithdrawalArg {
+    pub amount: Nat,
+    pub recipient: String,
+}
+
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub struct RetrieveEthRequest {
+    pub block_index: Nat,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum WithdrawalError {
+    AmountTooLow { min_withdrawal_amount: Nat },
+    InsufficientFunds { balance: Nat },
+    InsufficientAllowance { allowance: Nat },
+    TemporarilyUnavailable(String),
+}
+
+type WithdrawalResult = Result<RetrieveEthRequest, WithdrawalError>;
+```
+
+### Creating the Withdraw Function
+
+#### Understanding the Function
+
+The `withdraw` function uses the `InterCall` trait from `b3_utils` to make an internal canister call to the minter canister. The function takes an `amount` and a `recipient` as arguments and initiates the withdrawal process.
+
+Here's the code snippet for the function:
+
+```rust
+use b3_utils::InterCall;
+
+#[ic_cdk::update]
+async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {
+    let withraw = WithdrawalArg { amount, recipient };
+
+    InterCall::from(MINTER)
+        .call("withdraw_eth", withraw)
+        .await
+        .unwrap()
+}
+```
+
+#### Testing the Withdraw Function
+
+1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic`.
+
+2. **Open Candid UI**: Navigate to the Candid UI and test the `withdraw` function. Make sure to enter the amount in wei.
+   ![Alt text](assets/withdraw.png)
+
+## Step 14: Adding Security and Functionalities
+
+In this step, we'll add some security measures and functionalities to our canister.
+
+### Adding Security Measures
+
+#### Guards
+
+We'll add guards to the `withdraw` and `approve` functions to ensure that only the controller can call them. Add the following line at the top of your Rust code:
+
+```rust
+use b3_utils::caller_is_controller;
+```
+
+Then, add the `guard` attribute to the `withdraw` and `approve` functions:
+
+```rust
+#[ic_cdk::update(guard = "caller_is_controller")]
+```
+
+#### Transaction List
+
+To prevent a transaction from being processed more than once, we'll use stable memory. Add the "stable_memory" feature to `b3_utils` in your `Cargo.toml`:
+
+```toml
+b3_utils = { version = "0.8.0", features = ["ledger", "stable_memory"] }
+```
+
+Then, add the following code to initialize stable memory:
+
+```rust
+use b3_utils::memory::init_stable_mem_refcell;
+use b3_utils::memory::types::DefaultStableBTreeMap;
+use std::cell::RefCell;
+
+thread_local! {
+    static TRANSACTIONS: RefCell<DefaultStableBTreeMap<String, String>> = init_stable_mem_refcell("trasnactions", 1).unwrap();
+    static ITEMS: RefCell<DefaultStableBTreeMap<String, u128>> = init_stable_mem_refcell("items", 2).unwrap();
+}
+```
+
+### Adding Functionalities
+
+#### Item Management
+
+We'll add functionalities to set items and their prices, and to get the list of items. Here are the functions:
+
+```rust
+#[ic_cdk::query]
+fn get_transaction_list() -> Vec<(String, String)> {
+    TRANSACTIONS.with(|t| {
+        t.borrow()
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    })
+}
+
+#[ic_cdk::update(guard = "caller_is_controller")]
+fn set_item(item: String, price: u128) {
+    ITEMS.with(|p| p.borrow_mut().insert(item, price));
+}
+
+#[ic_cdk::query]
+fn get_items() -> Vec<(String, u128)> {
+    ITEMS.with(|p| {
+        p.borrow()
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    })
+}
+```
+
+#### Buying Items
+
+We'll add a function to buy items. This function will check the transaction list to ensure that the transaction has not been processed before. and check the amount to ensure that it's not too low.
+
+Here's the function:
+
+```rust
+#[ic_cdk::update]
+async fn buy_item(item: String, hash: String) -> u64 {
+    if TRANSACTIONS.with(|t| t.borrow().contains_key(&hash)) {
+        panic!("Transaction already processed")
+    }
+
+    let price = ITEMS.with(|p| {
+        p.borrow()
+            .get(&item)
+            .map(|p| p.clone())
+            .unwrap_or_else(|| panic!("Item not found"))
+    });
+
+    let (amount, from) = verify_transaction(hash.clone()).await;
+
+    if amount < price {
+        panic!("Amount too low")
+    }
+
+    TRANSACTIONS.with(|t| {
+        let mut t = t.borrow_mut();
+        t.insert(hash, from);
+
+        t.len() as u64
+    })
+}
+```
+
+### Testing
+
+1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic`.
+
+2. **Testing Guards**: Use the terminal to execute functions with guards. For example:
+
+   ```bash
+   dfx canister call hello withdraw '(10000000000000000, "0xB51f94aEEebE55A3760E8169A22e536eBD3a6DCB")' --network ic
+   ```
+
+   To add a new controller, run:
+
+   ```bash
+   dfx canister update-settings hello --add-controller 'YOUR_PRINCIPAL' --network=ic
+   ```
+
+3. **Adding Items**: Add items using the terminal:
+
+   ```bash
+   dfx canister call hello set_item '("Pizza", 1000000000000)' --network ic
+   ```
+
+   Check the items inside the Candid UI using `get_items`.
+   ![Alt text](assets/get_items.png)
+
+## Step 15: Frontend Integration for Shop and Item Purchase
+
+In this step, we'll integrate the frontend to display a shop and handle item purchases.
+
+### Shop Component
+
+Create a new file `Shop.tsx` inside the `src/components` directory and add the following code:
+
+```jsx
+import { useEffect } from "react"
+import { useActorMethod } from "service/hello"
+import Item from "./Item"
+
+interface ShopProps {}
+
+const Shop: React.FC<ShopProps> = ({}) => {
+  const { data: items, loading, call } = useActorMethod("get_items")
+
+  useEffect(() => {
+    call()
+  }, [])
+
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gridGap: 20
+      }}
+    >
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        items?.map(([name, price]) => {
+          return <Item name={name} price={price} key={name} />
+        })
+      )}
+    </div>
+  )
+}
+
+export default Shop
+```
+
+This component fetches the list of items from the backend and displays them in a grid layout.
+
+### Item Component
+
+Create a new file `Item.tsx` inside the `src/components` directory and add the following code:
+
+```jsx
+import { useEffect } from "react"
+import helperAbi from "service/abi.json"
+import { useActorMethod } from "service/hello"
+import { formatEther } from "viem"
+import { useContractWrite } from "wagmi"
+import Confirmation from "./Confirmation"
+
+interface ItemProps {
+  name: string
+  price: bigint
+}
+
+const Item: React.FC<ItemProps> = ({ name, price }) => {
+  const { data: canisterDepositAddress, call } = useActorMethod(
+    "canister_deposit_principal"
+  )
+
+  useEffect(() => {
+    call()
+  }, [])
+
+  const { data, isLoading, write } = useContractWrite({
+    address: "0xb44B5e756A894775FC32EDdf3314Bb1B1944dC34",
+    abi: helperAbi,
+    functionName: "deposit",
+    value: price,
+    args: [canisterDepositAddress]
+  })
+
+  if (isLoading) {
+    return <div>Buying {name}…</div>
+  } else if (data?.hash) {
+    return <Confirmation hash={data.hash} item={name} />
+  } else {
+    return (
+      <div>
+        <h3>{name}</h3>
+        <div>{formatEther(price).toString()} ETH</div>
+        <button onClick={() => write()}>Buy {name}</button>
+      </div>
+    )
+  }
+}
+
+export default Item
+```
+
+This component handles the purchase of individual items. It uses the `canister_deposit_principal` and `deposit` methods to handle the transaction.
+
+### Confirmation Component
+
+Edit the existing `Confirmation.tsx` file to add the `item` prop:
+
+```jsx
+import { Hash } from "viem"
+import { useWaitForTransaction } from "wagmi"
+import VerifyTransaction from "./VerifyTransaction"
+
+interface ConfirmationProps {
+  item: string
+  hash: Hash
+}
+
+const Confirmation: React.FC<ConfirmationProps> = ({ item, hash }) => {
+  const { data, isError, error, isLoading } = useWaitForTransaction({
+    hash,
+    confirmations: 6
+  })
+
+  if (isError && error) {
+    return <div>Transaction error {error.toString()}</div>
+  } else if (isLoading) {
+    return <div>Waiting for confirmation on Ethereum…</div>
+  } else if (data) {
+    return <VerifyTransaction hash={data.transactionHash} item={item} />
+  } else {
+    return null
+  }
+}
+
+export default Confirmation
+```
+
+This component waits for the Ethereum transaction to be confirmed and then triggers the on-chain verification on the Internet Computer.
+
+### Verify Transaction Component
+
+Edit the existing `VerifyTransaction.tsx` file to add the `item` prop and work with the new `buy_item` method:
+
+```jsx
+import { useEffect } from "react"
+import { useActorMethod } from "service/hello"
+
+interface VerifyTransactionProps {
+  item: string
+  hash: string
+}
+
+const VerifyTransaction: React.FC<VerifyTransactionProps> = ({
+  item,
+  hash
+}) => {
+  const { loading, error, data, call } = useActorMethod("buy_item")
+
+  useEffect(() => {
+    call(item, hash)
+  }, [hash])
+
+  if (loading) {
+    return <div>Processing Purchase on ICP...</div>
+  } else if (error) {
+    return <div>{error.toString()}</div>
+  } else if (data) {
+    return (
+      <div>
+        <h3>{item} bought!</h3>
+        <div>Purchase ID: {data.toString()}</div>
+      </div>
+    )
+  } else {
+    return null
+  }
+}
+
+export default VerifyTransaction
+```
+
+This component calls the `buy_item` method on the backend to finalize the purchase and display a purchase ID.
+
+### Update Wallet Component
+
+In your `Wallet.tsx`, replace `<Deposit />` with `<Shop />`.
+
+### Testing
+
+1. **Local Testing**: Run `yarn dev` to test the application locally.
+
+2. **Deploy to Mainnet**: Run `yarn deploy --network=ic` to deploy the application to the Internet Computer mainnet.
+
+3. **Live Example**: The live example can be accessed at [https://uu4vt-kqaaa-aaaap-abmia-cai.icp0.io/](https://uu4vt-kqaaa-aaaap-abmia-cai.icp0.io/).
