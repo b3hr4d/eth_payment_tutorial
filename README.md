@@ -155,13 +155,13 @@ fn deposit_principal(principal: String) -> String {
 
 ### Deploy the Modified Backend Canister
 
-After making the changes to the backend, deploy the canister to your local Internet Computer environment using the following command:
+After making the changes to the backend, open another terminal and deploy the canister to your local Internet Computer environment using the following command:
 
 ```bash
 yarn deploy hello
 ```
 
-Note: confirm the conset with `yes` the change on the terminal.
+Note: confirm the consent with `yes` to the change on the terminal.
 
 This will deploy only the `hello` canister, which now includes the `deposit_principal` function.
 
@@ -188,7 +188,7 @@ In this step, we'll integrate MetaMask using the [wagmi](https://wagmi.sh) libra
 ### Prerequisites
 
 - Make sure you have the [MetaMask extension](https://metamask.io/download.html) installed in your browser.
-- Create a new free account on [Alchemy](https://www.alchemy.com/). After signing up, you'll be provided with an API key.
+- Create a new free account on [Alchemy](https://www.alchemy.com/). After signing up, you have to create a new app with the Ethereum chain - Sepolia network then you’ll be provided with an API key.
 
 1. **Create a `.env` File**: If you haven't already, create a `.env` file in the root directory of your project.
 
@@ -216,7 +216,7 @@ Create a new file `config.ts` inside the `src/service` directory and add the fol
 import { createPublicClient, http } from "viem"
 import { createConfig, sepolia } from "wagmi"
 
-export const wagmiConfig = createConfig({
+export const config = createConfig({
   autoConnect: true,
   publicClient: createPublicClient({
     chain: sepolia,
@@ -260,9 +260,9 @@ const Wallet: React.FC<WalletProps> = ({}) => {
 export default Wallet
 ```
 
-### Update `pages/index.tsx`
+### Update `index.tsx`
 
-Finally, update your `pages/index.tsx` file and replace `<Greeting />` with the following code`:
+Finally, update your `src/pages/index.tsx` file and replace `<Greeting />` with the following code`:
 
 ```javascript
 // ...existing imports
