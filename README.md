@@ -389,7 +389,7 @@ return (
 
 You should have small amount of Sepolia ETH in your wallet. you can get some using this [faucet](https://sepoliafaucet.com/).
 
-1. **Call the Deposit Function**: Use the new deposit input and button to initiate a deposit.
+1. **Call the Deposit Function**: Please make sure you are on the Sepolia network on the metamask then Use the new deposit input and button to initiate a deposit.
    ![Alt text](assets/deposit_input.png)
 2. **Confirm with MetaMask**: A MetaMask popup should appear asking for confirmation to proceed with the transaction.
    ![Alt text](assets/deposit_metamask.png)
@@ -473,7 +473,7 @@ In this step, we'll verify the Ethereum transaction on-chain by calling the Ethe
    ![Alt text](assets/copy_response.png)
 2. **Generate Rust Structs**: Paste the copied response into this [online converter](https://transform.tools/json-to-rust-serde) to generate Rust structs.
    ![Alt text](assets/json_to_serde.png)
-3. **Save the File**: Save the generated code in a new file named `receipt.rs` inside the `backend/hello` directory.
+3. **Save the File**: Save the generated code in a new file named `receipt.rs` inside the `backend/hello/src` directory.
 
 ### Add Dependencies
 
@@ -487,12 +487,24 @@ serde_derive = "1.0"
 
 ### Create the `eth_get_transaction_receipt` Function
 
+#### Understanding the Function
+
+The function `eth_get_transaction_receipt` performs the following tasks:
+
+- **Prepare the JSON-RPC Payload**: It prepares the JSON-RPC payload using the `serde_json::json!` macro.
+
+- **Make the HTTP Outcall**: It uses the `HttpOutcall` struct from `b3_utils` to make an HTTP POST request to the Ethereum JSON-RPC API.
+
+- **Handle the Response**: It handles the API response, deserializes it into the `receipt::Root` struct, and returns it.
+
 Here's the code snippet for the function:
 
 ```rust
 mod receipt;
 use serde_json::json;
 use b3_utils::outcall::{HttpOutcall, HttpOutcallResponse};
+
+const RPC_URL: &str = "https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"; // replace with you alchemy API key
 
 async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, String> {
     let rpc = json!({
@@ -502,7 +514,7 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, Stri
         "params": [hash]
     });
 
-    let request = HttpOutcall::new(&RPC_URL)
+    let request = HttpOutcall::new(RPC_URL)
         .post(&rpc.to_string(), Some(2048))
         .send_with_closure(|response: HttpOutcallResponse| HttpOutcallResponse {
             status: response.status,
@@ -525,16 +537,7 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, Stri
     }
 }
 ```
-
-#### Understanding the Function
-
-The function `eth_get_transaction_receipt` performs the following tasks:
-
-- **Prepare the JSON-RPC Payload**: It prepares the JSON-RPC payload using the `serde_json::json!` macro.
-
-- **Make the HTTP Outcall**: It uses the `HttpOutcall` struct from `b3_utils` to make an HTTP POST request to the Ethereum JSON-RPC API.
-
-- **Handle the Response**: It handles the API response, deserializes it into the `receipt::Root` struct, and returns it.
+Note: Please always keep `ic_cdk::export_candid!();` at the very end of the `lib.rs` file.
 
 ### Test the Function Using Candid UI
 
