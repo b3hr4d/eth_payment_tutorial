@@ -1,6 +1,6 @@
 import { Hash } from "viem"
-import { useWaitForTransaction } from "wagmi"
 import VerifyTransaction from "./VerifyTransaction"
+import { useWaitForTransactionReceipt } from "wagmi"
 
 interface ConfirmationProps {
   item: string
@@ -8,7 +8,7 @@ interface ConfirmationProps {
 }
 
 const Confirmation: React.FC<ConfirmationProps> = ({ item, hash }) => {
-  const { data, isError, error, isLoading } = useWaitForTransaction({
+  const { data, isError, error, isLoading } = useWaitForTransactionReceipt({
     hash,
     confirmations: 2
   })

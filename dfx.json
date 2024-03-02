@@ -1,16 +1,16 @@
 {
   "canisters": {
-    "hello": {
+    "payment": {
       "type": "rust",
-      "candid": "backend/hello/hello.did",
-      "package": "hello",
+      "candid": "backend/payment/payment.did",
+      "package": "payment",
       "declarations": {
         "node_compatibility": true
       }
     },
     "frontend": {
       "dependencies": [
-        "hello"
+        "payment"
       ],
       "frontend": {
         "entrypoint": "out/index.html"

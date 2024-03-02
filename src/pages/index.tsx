@@ -5,7 +5,10 @@ import styles from "styles/Home.module.css"
 import Wallet from "components/Wallet"
 import Image from "next/image"
 import { config } from "service/config"
-import { WagmiConfig } from "wagmi"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { WagmiProvider } from "wagmi"
+
+const queryClient = new QueryClient()
 
 function HomePage() {
   return (
@@ -17,9 +20,11 @@ function HomePage() {
         <h3 className={styles.title}>
           Direct Ethereum Payment on the Internet Computer
         </h3>
-        <WagmiConfig config={config}>
-          <Wallet />
-        </WagmiConfig>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <Wallet />
+          </QueryClientProvider>
+        </WagmiProvider>
       </main>
       <footer className={styles.footer}>
         <a

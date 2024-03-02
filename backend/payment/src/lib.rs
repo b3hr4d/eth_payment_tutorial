@@ -1,3 +1,4 @@
+use b3_utils::api::{CallCycles, InterCall};
 use b3_utils::caller_is_controller;
 use b3_utils::{hex_string_with_0x_to_nat, vec_to_hex_string_with_0x, Subaccount};
 use b3_utils::{HttpOutcall, HttpOutcallResponse};
@@ -107,7 +108,7 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, Stri
 
     match request.await {
         Ok(response) => {
-            if response.status != 200 {
+            if response.status.to_string() != "200" {
                 return Err(format!("Error: {}", response.status));
             }
 
@@ -228,14 +229,12 @@ pub enum WithdrawalError {
 
 type WithdrawalResult = Result<RetrieveEthRequest, WithdrawalError>;
 
-use b3_utils::InterCall;
-
 #[ic_cdk::update(guard = "caller_is_controller")]
 async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {
     let withraw = WithdrawalArg { amount, recipient };
 
     InterCall::from(MINTER)
-        .call("withdraw_eth", withraw)
+        .call("withdraw_eth", withraw, CallCycles::NoPay)
         .await
         .unwrap()
 }

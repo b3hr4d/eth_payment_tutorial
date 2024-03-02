@@ -1,6 +1,6 @@
 {
   "name": "ic-rust-nextjs",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "author": "b3hr4d <b3hr4d@live.com>",
   "description": "Internet Computer Rust + NextJS Template",
   "keywords": [
@@ -27,18 +27,20 @@
     "generate": "dfx generate"
   },
   "devDependencies": {
-    "@types/node": "20.8.6",
-    "@types/react": "18.2.28",
-    "dotenv": "16.3.1",
-    "typescript": "5.2.2"
+    "@types/node": "20.11",
+    "@types/react": "18.2",
+    "dotenv": "16.4",
+    "typescript": "5.3"
   },
   "dependencies": {
-    "@re-actor/core": "^0.0.7",
-    "@web3modal/wagmi": "^3.1.0",
-    "next": "^13.5",
+    "@ic-reactor/react": "^1.1",
+    "@tanstack/query-core": "^5.24.2",
+    "@tanstack/react-query": "^5.24.2",
+    "@web3modal/wagmi": "^4.0",
+    "next": "^14.1",
     "react": "^18.2",
     "react-dom": "^18.2",
-    "viem": "^1.16.6",
-    "wagmi": "^1.4.5"
+    "viem": "^2.7.16",
+    "wagmi": "^2.5.7"
   }
 }

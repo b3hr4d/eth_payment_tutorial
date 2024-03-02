@@ -1,5 +1,6 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
+import type { IDL } from '@dfinity/candid';
 
 export type ICRC1TransferError = {
     'GenericError' : { 'message' : string, 'error_code' : bigint }
@@ -45,3 +46,4 @@ export interface _SERVICE {
   'verify_transaction' : ActorMethod<[string], [bigint, string]>,
   'withdraw' : ActorMethod<[bigint, string], Result_2>,
 }
+export declare const idlFactory: IDL.InterfaceFactory;

@@ -44,9 +44,9 @@ We'll begin by cloning the [`ic-rust-nextjs`](https://github.com/b3hr4d/ic-rust-
 - [`README.md`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/README.md): Provides an overview and setup instructions.
 - [`Cargo.toml`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/Cargo.toml): The manifest file for the Rust workspace.
 - [`dfx.json`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/dfx.json): Configuration file for the DFINITY Canister SDK.
-- [`backend/hello/src/lib.rs`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/backend/hello/src/lib.rs): The Rust code for the backend logic.
+- [`backend/payment/src/lib.rs`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/backend/payment/src/lib.rs): The Rust code for the backend logic.
 - [`src/pages/index.tsx`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/pages/index.tsx): The main page of the Next.js app.
-- [`src/service/hello.ts`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/service/hello.ts): Service file to interact with the Rust backend.
+- [`src/service/payment.ts`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/service/payment.ts): Service file to interact with the Rust backend.
 
 ### Cloning the Repository
 
@@ -85,9 +85,9 @@ npm run dfx:start
 Deploy your the backend canister to the local Internet Computer by running:
 
 ```bash
-yarn deploy hello
+yarn deploy payment
 # or
-npm run deploy hello
+npm run deploy payment
 ```
 
 ### Running the Next.js App
@@ -158,12 +158,12 @@ fn deposit_principal(principal: String) -> String {
 After making the changes to the backend, open another terminal and deploy the canister to your local Internet Computer environment using the following command:
 
 ```bash
-yarn deploy hello
+yarn deploy payment
 ```
 
 Note: confirm the consent with `yes` to the change on the terminal.
 
-This will deploy only the `hello` canister, which now includes the `deposit_principal` function.
+This will deploy only the `payment` canister, which now includes the `deposit_principal` function.
 
 ### Update the Frontend Code
 
@@ -307,10 +307,10 @@ In this step, we'll prepare the minter helper contract for calls and enable ETH 
 Create a new file named `Deposit.tsx` inside the `src/components` directory and add the following code:
 
 ```javascript
-import { canisterId } from "declarations/hello"
+import { canisterId } from "declarations/payment"
 import { useEffect, useState } from "react"
 import helperAbi from "service/abi.json"
-import { useActorMethod } from "service/hello"
+import { useActorMethod } from "service/payment"
 import { parseEther } from "viem"
 import { useContractWrite } from "wagmi"
 
@@ -473,7 +473,7 @@ In this step, we'll verify the Ethereum transaction on-chain by calling the Ethe
    ![Alt text](assets/copy_response.png)
 2. **Generate Rust Structs**: Paste the copied response into this [online converter](https://transform.tools/json-to-rust-serde) to generate Rust structs.
    ![Alt text](assets/json_to_serde.png)
-3. **Save the File**: Save the generated code in a new file named `receipt.rs` inside the `backend/hello/src` directory.
+3. **Save the File**: Save the generated code in a new file named `receipt.rs` inside the `backend/payment/src` directory.
 
 ### Add Dependencies
 
@@ -537,6 +537,7 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<receipt::Root, Stri
     }
 }
 ```
+
 Note: Please always keep `ic_cdk::export_candid!();` at the very end of the `lib.rs` file.
 
 ### Test the Function Using Candid UI
@@ -554,7 +555,7 @@ async fn get_receipt(hash: String) -> String {
 }
 ```
 
-1. **Deploy the Canister**: Deploy the updated canister using the command `yarn deploy hello`.
+1. **Deploy the Canister**: Deploy the updated canister using the command `yarn deploy payment`.
 
 2. **Navigate to Candid UI**: After successful deployment, navigate to the Candid UI using the link provided in the terminal.
    Somthing like this `http://127.0.0.1:4943/?canisterId=bd3sg-teaaa-aaaaa-qaaba-cai&id=bkyz2-fmaaa-aaaaa-qaaaq-cai`
@@ -645,7 +646,7 @@ fn canister_deposit_principal() -> String {
 
 #### Testing the Functions
 
-1. **Deploy the Canister**: Deploy the updated canister using `yarn deploy hello`.
+1. **Deploy the Canister**: Deploy the updated canister using `yarn deploy payment`.
 
 2. **Navigate to Candid UI**: After successful deployment, navigate to the Candid UI using the link provided in the terminal.
 
@@ -670,7 +671,7 @@ Here's the code snippet for the component:
 
 ```javascript
 import { useEffect } from "react"
-import { useActorMethod } from "service/hello"
+import { useActorMethod } from "service/payment"
 import { formatEther } from "viem"
 
 interface VerifyTransactionProps {
@@ -749,7 +750,7 @@ yarn deploy --network=ic
 Alternatively, you can choose to deploy only the backend to the mainnet and run the frontend locally. To deploy just the backend, use:
 
 ```bash
-yarn deploy hello --network=ic
+yarn deploy payment --network=ic
 ```
 
 To run the frontend locally, execute:
@@ -817,7 +818,7 @@ async fn balance() -> Nat {
 
 #### Testing the ckETH Balance Function
 
-1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic` to upgrade canister.
+1. **Deploy to Mainnet**: Run `yarn deploy payment --network=ic` to upgrade canister.
 
 2. **Open Candid UI**: Navigate to the Candid UI and test the `balance` function. Note that the minting process might take some time.
    ![Alt text](assets/balance.png)
@@ -854,7 +855,7 @@ async fn transfer(to: String, amount: Nat) -> ICRC1TransferResult {
 
 #### Testing the Transfer Function
 
-1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic` to upgrade canister.
+1. **Deploy to Mainnet**: Run `yarn deploy payment --network=ic` to upgrade canister.
 
 2. **Open Candid UI**: Navigate to the Candid UI and test the `transfer` function by passing the recipient's [ICRCAccount](https://forum.dfinity.org/t/icrc-1-account-human-readable-format/14682/56) comptible format string and the amount of ckETH to transfer.
    ![Alt text](assets/transfer.png)
@@ -893,7 +894,7 @@ async fn approve(amount: Nat) -> ICRC2ApproveResult {
 
 #### Testing the Approve Function
 
-1. **Deploy to Mainnet**: Again upgrade the canister using `yarn deploy hello --network=ic`.
+1. **Deploy to Mainnet**: Again upgrade the canister using `yarn deploy payment --network=ic`.
 
 2. **Open Candid UI**: Navigate to the Candid UI and test the `approve` function.
    ![Alt text](assets/approve.png)
@@ -955,7 +956,7 @@ async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {
 
 #### Testing the Withdraw Function
 
-1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic`.
+1. **Deploy to Mainnet**: Run `yarn deploy payment --network=ic`.
 
 2. **Open Candid UI**: Navigate to the Candid UI and test the `withdraw` function. Make sure to enter the amount in wei.
    ![Alt text](assets/withdraw.png)
@@ -1071,24 +1072,24 @@ async fn buy_item(item: String, hash: String) -> u64 {
 
 ### Testing
 
-1. **Deploy to Mainnet**: Run `yarn deploy hello --network=ic`.
+1. **Deploy to Mainnet**: Run `yarn deploy payment --network=ic`.
 
 2. **Testing Guards**: Use the terminal to execute functions with guards. For example:
 
    ```bash
-   dfx canister call hello withdraw '(10000000000000000, "0xB51f94aEEebE55A3760E8169A22e536eBD3a6DCB")' --network ic
+   dfx canister call payment withdraw '(10000000000000000, "0xB51f94aEEebE55A3760E8169A22e536eBD3a6DCB")' --network ic
    ```
 
    To add a new controller, run:
 
    ```bash
-   dfx canister update-settings hello --add-controller 'YOUR_PRINCIPAL' --network=ic
+   dfx canister update-settings payment --add-controller 'YOUR_PRINCIPAL' --network=ic
    ```
 
 3. **Adding Items**: Add items using the terminal:
 
    ```bash
-   dfx canister call hello set_item '("Pizza", 1000000000000)' --network ic
+   dfx canister call payment set_item '("Pizza", 1000000000000)' --network ic
    ```
 
    Check the items inside the Candid UI using `get_items`.
@@ -1104,7 +1105,7 @@ Create a new file `Shop.tsx` inside the `src/components` directory and add the f
 
 ```jsx
 import { useEffect } from "react"
-import { useActorMethod } from "service/hello"
+import { useActorMethod } from "service/payment"
 import Item from "./Item"
 
 interface ShopProps {}
@@ -1148,7 +1149,7 @@ Create a new file `Item.tsx` inside the `src/components` directory and add the f
 ```jsx
 import { useEffect } from "react"
 import helperAbi from "service/abi.json"
-import { useActorMethod } from "service/hello"
+import { useActorMethod } from "service/payment"
 import { formatEther } from "viem"
 import { useContractWrite } from "wagmi"
 import Confirmation from "./Confirmation"
@@ -1237,7 +1238,7 @@ Edit the existing `VerifyTransaction.tsx` file to add the `item` prop and work w
 
 ```jsx
 import { useEffect } from "react"
-import { useActorMethod } from "service/hello"
+import { useActorMethod } from "service/payment"
 
 interface VerifyTransactionProps {
   item: string
