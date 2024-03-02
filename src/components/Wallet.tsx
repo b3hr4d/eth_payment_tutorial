@@ -35,7 +35,13 @@ const Wallet: React.FC<WalletProps> = ({}) => {
         onClick={() =>
           connect({
             connector: walletConnect({
-              projectId
+              projectId,
+              metadata: {
+                name: "ICPPayment",
+                description: "Internet Computer Payment",
+                url: "https://github.com/B3Pay",
+                icons: ["https://avatars.githubusercontent.com/u/121541974"]
+              }
             })
           })
         }
