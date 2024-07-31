@@ -8,19 +8,13 @@ pub struct LogEntry {
 }
 
 #[derive(Serialize)]
-pub enum ReceiptWrapper {
-    Ok(TransactionReceiptData),
-    Err(String),
-}
-
-#[derive(Serialize)]
 pub struct TransactionReceiptData {
     pub to: String,
-    pub status: String, 
+    pub status: String,
     pub transaction_hash: String,
-    pub block_number: String, 
+    pub block_number: String,
     pub from: String,
-    pub logs: Vec<LogEntry>, 
+    pub logs: Vec<LogEntry>,
 }
 
 #[derive(Serialize, CandidType, Deserialize)]

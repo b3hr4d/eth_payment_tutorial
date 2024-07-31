@@ -8,61 +8,22 @@ const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
 const MINTER: &str = "jzenf-aiaaa-aaaar-qaa7q-cai";
 
 use b3_utils::memory::init_stable_mem_refcell;
-use b3_utils::memory::types::{DefaultStableBTreeMap, DefaultStableCell};
+use b3_utils::memory::types::DefaultStableBTreeMap;
 use std::cell::RefCell;
 
 use evm_rpc_canister_types::{
-    EthSepoliaService, EvmRpcCanister, GetTransactionReceiptResult, MultiGetTransactionReceiptResult, RpcServices
-}; 
+    EthSepoliaService, EvmRpcCanister, GetTransactionReceiptResult,
+    MultiGetTransactionReceiptResult, RpcServices,
+};
 
 thread_local! {
     static TRANSACTIONS: RefCell<DefaultStableBTreeMap<String, String>> = init_stable_mem_refcell("trasnactions", 1).unwrap();
     static ITEMS: RefCell<DefaultStableBTreeMap<String, u128>> = init_stable_mem_refcell("items", 2).unwrap();
-    static RPC_URL: RefCell<DefaultStableCell<String>> = init_stable_mem_refcell("rpc_url", 3).unwrap();
 }
 
 pub const EVM_RPC_CANISTER_ID: Principal =
     Principal::from_slice(b"\x00\x00\x00\x00\x02\x30\x00\xCC\x01\x01"); // 7hfb6-caaaa-aaaar-qadga-cai
 pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
-
-impl From<GetTransactionReceiptResult> for receipt::ReceiptWrapper {
-    fn from(result: GetTransactionReceiptResult) -> Self {
-        match result {
-            GetTransactionReceiptResult::Ok(receipt) => {
-                if let Some(receipt) = receipt {
-                    receipt::ReceiptWrapper::Ok(receipt::TransactionReceiptData {
-                        to: receipt.to,
-                        status: receipt.status.to_string(),
-                        transaction_hash: receipt.transactionHash,
-                        block_number: receipt.blockNumber.to_string(),
-                        from: receipt.from,
-                        logs: receipt.logs.into_iter().map(|log| receipt::LogEntry {
-                            address: log.address,
-                            topics: log.topics,
-                        }).collect(),
-                    })
-                } else {
-                    receipt::ReceiptWrapper::Err("Receipt is None".to_string())
-                }
-            },
-            GetTransactionReceiptResult::Err(e) => receipt::ReceiptWrapper::Err(format!("Error on Get transaction receipt result: {:?}", e)),
-        }
-    }
-}
-
-#[ic_cdk::init]
-fn init(rpc_url: Option<String>) {
-    if let Some(rpc_url) = rpc_url {
-        RPC_URL.with(|r| r.borrow_mut().set(rpc_url)).unwrap();
-    }
-}
-
-#[ic_cdk::post_upgrade]
-fn post_upgrade(rpc_url: Option<String>) {
-    if let Some(rpc_url) = rpc_url {
-        RPC_URL.with(|r| r.borrow_mut().set(rpc_url)).unwrap();
-    }
-}
 
 #[ic_cdk::query]
 fn get_transaction_list() -> Vec<(String, String)> {
@@ -121,39 +82,36 @@ async fn buy_item(item: String, hash: String) -> u64 {
     })
 }
 
-// Testing get receipt function 
+// Testing get receipt function
 #[ic_cdk::update]
-async fn get_receipt(hash: String) -> String {
-    let receipt = eth_get_transaction_receipt(hash).await.unwrap();
-    let wrapper = receipt::ReceiptWrapper::from(receipt);
-    serde_json::to_string(&wrapper).unwrap()
+async fn get_receipt(hash: String) -> GetTransactionReceiptResult {
+    eth_get_transaction_receipt(hash).await.unwrap()
 }
 
 async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionReceiptResult, String> {
     // Make the call to the EVM_RPC canister
-    let result: Result<(MultiGetTransactionReceiptResult,), String> = EVM_RPC 
+    let result: Result<(MultiGetTransactionReceiptResult,), String> = EVM_RPC
         .eth_get_transaction_receipt(
             RpcServices::EthSepolia(Some(vec![
                 EthSepoliaService::PublicNode,
                 EthSepoliaService::BlockPi,
                 EthSepoliaService::Ankr,
             ])),
-            None, 
-            hash, 
-            10_000_000_000
+            None,
+            hash,
+            10_000_000_000,
         )
-        .await 
+        .await
         .map_err(|e| format!("Failed to call eth_getTransactionReceipt: {:?}", e));
 
     match result {
-        Ok((MultiGetTransactionReceiptResult::Consistent(receipt),)) => {
-            Ok(receipt)
-        },
-        Ok((MultiGetTransactionReceiptResult::Inconsistent(error),)) => {
-            Err(format!("EVM_RPC returned inconsistent results: {:?}", error))
-        },
+        Ok((MultiGetTransactionReceiptResult::Consistent(receipt),)) => Ok(receipt),
+        Ok((MultiGetTransactionReceiptResult::Inconsistent(error),)) => Err(format!(
+            "EVM_RPC returned inconsistent results: {:?}",
+            error
+        )),
         Err(e) => Err(format!("Error calling EVM_RPC: {}", e)),
-    }    
+    }
 }
 
 // Function for verifying the transaction on-chain
@@ -169,7 +127,9 @@ async fn verify_transaction(hash: String) -> Result<receipt::VerifiedTransaction
     let receipt_data = match receipt {
         GetTransactionReceiptResult::Ok(Some(data)) => data,
         GetTransactionReceiptResult::Ok(None) => return Err("Receipt is None".to_string()),
-        GetTransactionReceiptResult::Err(e) => return Err(format!("Error on Get transaction receipt result: {:?}", e)),
+        GetTransactionReceiptResult::Err(e) => {
+            return Err(format!("Error on Get transaction receipt result: {:?}", e))
+        }
     };
 
     // Check if the status indicates success (Nat 1)
@@ -183,15 +143,17 @@ async fn verify_transaction(hash: String) -> Result<receipt::VerifiedTransaction
         return Err("Minter address does not match".to_string());
     }
 
-    let deposit_principal = canister_deposit_principal(); 
+    let deposit_principal = canister_deposit_principal();
 
     // Verify the principal in the logs matches the deposit principal
-    let log_principal = receipt_data.logs.iter()
+    let log_principal = receipt_data
+        .logs
+        .iter()
         .find(|log| log.topics.get(2).map(|topic| topic.as_str()) == Some(&deposit_principal))
         .ok_or_else(|| "Principal does not match or missing in logs".to_string())?;
 
     // Extract relevant transaction details
-    let amount =  log_principal.data.clone();
+    let amount = log_principal.data.clone();
     let from_address = receipt_data.from.clone();
 
     Ok(receipt::VerifiedTransactionDetails {
