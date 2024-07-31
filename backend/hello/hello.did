@@ -37,6 +37,7 @@ service : (opt text) -> {
   buy_item : (text, text) -> (nat64);
   canister_deposit_principal : () -> (text) query;
   get_items : () -> (vec record { text; nat }) query;
+  get_receipt : (text) -> (text);
   get_transaction_list : () -> (vec record { text; text }) query;
   set_item : (text, nat) -> ();
   transfer : (text, nat) -> (Result_1);

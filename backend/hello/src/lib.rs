@@ -121,6 +121,13 @@ async fn buy_item(item: String, hash: String) -> u64 {
     })
 }
 
+// Testing get receipt function 
+#[ic_cdk::update]
+async fn get_receipt(hash: String) -> String {
+    let receipt = eth_get_transaction_receipt(hash).await.unwrap();
+    let wrapper = receipt::ReceiptWrapper::from(receipt);
+    serde_json::to_string(&wrapper).unwrap()
+}
 
 async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionReceiptResult, String> {
     // Make the call to the EVM_RPC canister

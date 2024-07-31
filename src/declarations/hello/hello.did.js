@@ -28,6 +28,14 @@ export const idlFactory = ({ IDL }) => {
     'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
   const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : ICRC1TransferError });
+  const VerifiedTransactionDetails = IDL.Record({
+    'from' : IDL.Text,
+    'amount' : IDL.Text,
+  });
+  const Result_2 = IDL.Variant({
+    'Ok' : VerifiedTransactionDetails,
+    'Err' : IDL.Text,
+  });
   const RetrieveEthRequest = IDL.Record({ 'block_index' : IDL.Nat });
   const WithdrawalError = IDL.Variant({
     'TemporarilyUnavailable' : IDL.Text,
@@ -35,7 +43,7 @@ export const idlFactory = ({ IDL }) => {
     'AmountTooLow' : IDL.Record({ 'min_withdrawal_amount' : IDL.Nat }),
     'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
-  const Result_2 = IDL.Variant({
+  const Result_3 = IDL.Variant({
     'Ok' : RetrieveEthRequest,
     'Err' : WithdrawalError,
   });
@@ -49,6 +57,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
         ['query'],
       ),
+    'get_receipt' : IDL.Func([IDL.Text], [IDL.Text], []),
     'get_transaction_list' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
@@ -56,8 +65,8 @@ export const idlFactory = ({ IDL }) => {
       ),
     'set_item' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'transfer' : IDL.Func([IDL.Text, IDL.Nat], [Result_1], []),
-    'verify_transaction' : IDL.Func([IDL.Text], [IDL.Nat, IDL.Text], []),
-    'withdraw' : IDL.Func([IDL.Nat, IDL.Text], [Result_2], []),
+    'verify_transaction' : IDL.Func([IDL.Text], [Result_2], []),
+    'withdraw' : IDL.Func([IDL.Nat, IDL.Text], [Result_3], []),
   });
 };
 export const init = ({ IDL }) => { return [IDL.Opt(IDL.Text)]; };
