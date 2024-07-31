@@ -21,8 +21,10 @@ type ICRC2ApproveError = variant {
 };
 type Result = variant { Ok : nat; Err : ICRC2ApproveError };
 type Result_1 = variant { Ok : nat; Err : ICRC1TransferError };
-type Result_2 = variant { Ok : RetrieveEthRequest; Err : WithdrawalError };
+type Result_2 = variant { Ok : VerifiedTransactionDetails; Err : text };
+type Result_3 = variant { Ok : RetrieveEthRequest; Err : WithdrawalError };
 type RetrieveEthRequest = record { block_index : nat };
+type VerifiedTransactionDetails = record { from : text; amount : text };
 type WithdrawalError = variant {
   TemporarilyUnavailable : text;
   InsufficientAllowance : record { allowance : nat };
@@ -38,6 +40,6 @@ service : (opt text) -> {
   get_transaction_list : () -> (vec record { text; text }) query;
   set_item : (text, nat) -> ();
   transfer : (text, nat) -> (Result_1);
-  verify_transaction : (text) -> (nat, text);
-  withdraw : (nat, text) -> (Result_2);
+  verify_transaction : (text) -> (Result_2);
+  withdraw : (nat, text) -> (Result_3);
 }
