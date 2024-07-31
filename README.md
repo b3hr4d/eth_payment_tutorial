@@ -491,9 +491,9 @@ serde_derive = "1.0"
 
 The function `eth_get_transaction_receipt` performs the following tasks:
 
-- **Call to EVM RPC Canister**:  It initiates a call to the EVM RPC canister, utilizing the ``eth_get_transaction_receipt`` method to retrieve the transaction receipt for a given transaction hash. The function prepares the necessary parameters, including a list of Ethereum Sepolia network services (e.g., PublicNode, BlockPi, Ankr) to ensure reliable data retrieval.
+- **Call to EVM RPC Canister**: It initiates a call to the EVM RPC canister, utilizing the `eth_get_transaction_receipt` method to retrieve the transaction receipt for a given transaction hash. The function prepares the necessary parameters, including a list of Ethereum Sepolia network services (e.g., PublicNode, BlockPi, Ankr) to ensure reliable data retrieval.
 
-- **Handle the RPC Response**: The function processes the response from the EVM RPC canister. If the response is consistent across the selected network services, it returns the transaction ``receipt`` wrapped in an ``Ok`` result. If the results are inconsistent or if an error occurs during the RPC call, the function returns an error message wrapped in an Err result.
+- **Handle the RPC Response**: The function processes the response from the EVM RPC canister. If the response is consistent across the selected network services, it returns the transaction `receipt` wrapped in an `Ok` result. If the results are inconsistent or if an error occurs during the RPC call, the function returns an error message wrapped in an Err result.
 
 - **Error Handling:**: It captures and returns any errors that occur during the process, such as network issues, inconsistencies in the RPC responses, or communication failures, providing detailed error messages for troubleshooting.
 
@@ -504,8 +504,10 @@ Add the following dependency to your `Cargo.toml`:
 ```toml
 evm-rpc-canister-types = "1.0.0"
 ```
+
 ### Modify dfx.json file
-Add the follwing code snippet to your ``dfx.json`` file: 
+
+Add the follwing code snippet to your `dfx.json` file:
 
 ```json
 "evm_rpc": {
@@ -522,8 +524,9 @@ Add the follwing code snippet to your ``dfx.json`` file:
 }
 ```
 
-## Initiate the EVM RPC Canister with your canister ID 
-Add this line to your ``lib.rs`` file: 
+## Initiate the EVM RPC Canister with your canister ID
+
+Add this line to your `lib.rs` file:
 
 ```rust
 pub const EVM_RPC_CANISTER_ID: Principal =
@@ -532,72 +535,46 @@ pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
 ```
 
 ## Implement the code logic
+
 Here's the code snippet for the function:
 
 ```rust
 // Import the structs from the crate
 use evm_rpc_canister_types::{
     BlockTag, EthSepoliaService, EvmRpcCanister, GetTransactionReceiptResult, MultiGetTransactionReceiptResult, RpcError, RpcServices
-}; 
+};
 
-// Import the receipt mod 
+// Import the receipt mod
 mod receipt;
-
-// Implement a conversion from the GetTransactionReceiptResult type to a receipt::ReceiptWrapper. The purpose of this is to convert it to structured format (receipt::ReceiptWrapper)
-impl From<GetTransactionReceiptResult> for receipt::ReceiptWrapper {
-    fn from(result: GetTransactionReceiptResult) -> Self {
-        match result {
-            GetTransactionReceiptResult::Ok(receipt) => {
-                if let Some(receipt) = receipt {
-                    receipt::ReceiptWrapper::Ok(receipt::TransactionReceiptData {
-                        to: receipt.to,
-                        status: receipt.status.to_string(),
-                        transaction_hash: receipt.transactionHash,
-                        block_number: receipt.blockNumber.to_string(),
-                        from: receipt.from,
-                        logs: receipt.logs.into_iter().map(|log| receipt::LogEntry {
-                            address: log.address,
-                            topics: log.topics,
-                        }).collect(),
-                    })
-                } else {
-                    receipt::ReceiptWrapper::Err("Receipt is None".to_string())
-                }
-            },
-            GetTransactionReceiptResult::Err(e) => receipt::ReceiptWrapper::Err(format!("Error on Get transaction receipt result: {:?}", e)),
-        }
-    }
-}
 
 // Implementing the eth_get_transaction function
 async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionReceiptResult, String> {
     // Make the call to the EVM_RPC canister
-    let result: Result<(MultiGetTransactionReceiptResult,), String> = EVM_RPC 
+    let result: Result<(MultiGetTransactionReceiptResult,), String> = EVM_RPC
         .eth_get_transaction_receipt(
             RpcServices::EthSepolia(Some(vec![
                 EthSepoliaService::PublicNode,
                 EthSepoliaService::BlockPi,
                 EthSepoliaService::Ankr,
             ])),
-            None, 
-            hash, 
-            10_000_000_000
+            None,
+            hash,
+            10_000_000_000,
         )
-        .await 
+        .await
         .map_err(|e| format!("Failed to call eth_getTransactionReceipt: {:?}", e));
 
     match result {
-        Ok((MultiGetTransactionReceiptResult::Consistent(receipt),)) => {
-            Ok(receipt)
-        },
-        Ok((MultiGetTransactionReceiptResult::Inconsistent(error),)) => {
-            Err(format!("EVM_RPC returned inconsistent results: {:?}", error))
-        },
+        Ok((MultiGetTransactionReceiptResult::Consistent(receipt),)) => Ok(receipt),
+        Ok((MultiGetTransactionReceiptResult::Inconsistent(error),)) => Err(format!(
+            "EVM_RPC returned inconsistent results: {:?}",
+            error
+        )),
         Err(e) => Err(format!("Error calling EVM_RPC: {}", e)),
-    }    
+    }
 }
-
 ```
+
 Note: Please always keep `ic_cdk::export_candid!();` at the very end of the `lib.rs` file.
 
 ### Test the Function Using Candid UI
@@ -607,12 +584,10 @@ For testing the function, we'll use the Candid UI, which is a web-based interfac
 Add this function to your `lib.rs` file:
 
 ```rust
-// Testing get receipt function 
+// Testing get receipt function
 #[ic_cdk::update]
-async fn get_receipt(hash: String) -> String {
-    let receipt = eth_get_transaction_receipt(hash).await.unwrap();
-    let wrapper = receipt::ReceiptWrapper::from(receipt);
-    serde_json::to_string(&wrapper).unwrap()
+async fn get_receipt(hash: String) -> GetTransactionReceiptResult {
+    eth_get_transaction_receipt(hash).await.unwrap()
 }
 ```
 
@@ -822,7 +797,7 @@ yarn dev
 
 Upon successful deployment of the backend, you should see output similar to this in your terminal:
 
-![Alt text](upload://g7jsWyoMAZesvi1wtzLjK3RW7lJ.png)
+![alt text](./assets/terminal.png)
 
 ### Testing on Mainnet
 
