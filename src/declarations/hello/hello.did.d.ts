@@ -2,6 +2,18 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
+export type GetTransactionReceiptResult = { 'Ok' : [] | [TransactionReceipt] } |
+  { 'Err' : RpcError };
+export type HttpOutcallError = {
+    'IcError' : { 'code' : RejectionCode, 'message' : string }
+  } |
+  {
+    'InvalidHttpJsonRpcResponse' : {
+      'status' : number,
+      'body' : string,
+      'parsingError' : [] | [string],
+    }
+  };
 export type ICRC1TransferError = {
     'GenericError' : { 'message' : string, 'error_code' : bigint }
   } |
@@ -23,6 +35,31 @@ export type ICRC2ApproveError = {
   { 'TooOld' : null } |
   { 'Expired' : { 'ledger_time' : bigint } } |
   { 'InsufficientFunds' : { 'balance' : bigint } };
+export interface JsonRpcError { 'code' : bigint, 'message' : string }
+export interface LogEntry {
+  'transactionHash' : [] | [string],
+  'blockNumber' : [] | [bigint],
+  'data' : string,
+  'blockHash' : [] | [string],
+  'transactionIndex' : [] | [bigint],
+  'topics' : Array<string>,
+  'address' : string,
+  'logIndex' : [] | [bigint],
+  'removed' : boolean,
+}
+export type ProviderError = {
+    'TooFewCycles' : { 'expected' : bigint, 'received' : bigint }
+  } |
+  { 'MissingRequiredProvider' : null } |
+  { 'ProviderNotFound' : null } |
+  { 'NoPermission' : null };
+export type RejectionCode = { 'NoError' : null } |
+  { 'CanisterError' : null } |
+  { 'SysTransient' : null } |
+  { 'DestinationInvalid' : null } |
+  { 'Unknown' : null } |
+  { 'SysFatal' : null } |
+  { 'CanisterReject' : null };
 export type Result = { 'Ok' : bigint } |
   { 'Err' : ICRC2ApproveError };
 export type Result_1 = { 'Ok' : bigint } |
@@ -32,6 +69,31 @@ export type Result_2 = { 'Ok' : VerifiedTransactionDetails } |
 export type Result_3 = { 'Ok' : RetrieveEthRequest } |
   { 'Err' : WithdrawalError };
 export interface RetrieveEthRequest { 'block_index' : bigint }
+export type RpcError = { 'JsonRpcError' : JsonRpcError } |
+  { 'ProviderError' : ProviderError } |
+  { 'ValidationError' : ValidationError } |
+  { 'HttpOutcallError' : HttpOutcallError };
+export interface TransactionReceipt {
+  'to' : string,
+  'status' : bigint,
+  'transactionHash' : string,
+  'blockNumber' : bigint,
+  'from' : string,
+  'logs' : Array<LogEntry>,
+  'blockHash' : string,
+  'type' : string,
+  'transactionIndex' : bigint,
+  'effectiveGasPrice' : bigint,
+  'logsBloom' : string,
+  'contractAddress' : [] | [string],
+  'gasUsed' : bigint,
+}
+export type ValidationError = { 'CredentialPathNotAllowed' : null } |
+  { 'HostNotAllowed' : string } |
+  { 'CredentialHeaderNotAllowed' : null } |
+  { 'UrlParseError' : string } |
+  { 'Custom' : string } |
+  { 'InvalidHex' : string };
 export interface VerifiedTransactionDetails {
   'from' : string,
   'amount' : string,
@@ -46,7 +108,7 @@ export interface _SERVICE {
   'buy_item' : ActorMethod<[string, string], bigint>,
   'canister_deposit_principal' : ActorMethod<[], string>,
   'get_items' : ActorMethod<[], Array<[string, bigint]>>,
-  'get_receipt' : ActorMethod<[string], string>,
+  'get_receipt' : ActorMethod<[string], GetTransactionReceiptResult>,
   'get_transaction_list' : ActorMethod<[], Array<[string, string]>>,
   'set_item' : ActorMethod<[string, bigint], undefined>,
   'transfer' : ActorMethod<[string, bigint], Result_1>,
@@ -54,4 +116,4 @@ export interface _SERVICE {
   'withdraw' : ActorMethod<[bigint, string], Result_3>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
-export declare const init: ({ IDL }: { IDL: IDL }) => IDL.Type[];
+export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
