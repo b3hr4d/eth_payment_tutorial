@@ -113,7 +113,7 @@ In this step, we'll modify the backend to include a function that generates a de
 First, we need to install the [b3_utils](https://docs.rs/b3_utils/latest/b3_utils/) Rust crate. Open your `Cargo.toml` file and add the following line under `[dependencies]`:
 
 ```toml
-b3_utils = "0.8.0"
+b3_utils = "0.11.0"
 ```
 
 or run this command:
@@ -820,7 +820,7 @@ In this step, we'll integrate our canister with the ckETH ICRC standard to show 
 First, add the "ledger" feature to the `b3_utils` crate in your `Cargo.toml`:
 
 ```toml
-b3_utils = { version = "0.8.0", features = ["ledger"] }
+b3_utils = { version = "0.11.0", features = ["ledger"] }
 ```
 
 ### Setting Up Ledger and Minter Constants
@@ -1022,7 +1022,7 @@ Then, add the `guard` attribute to the `withdraw` and `approve` functions:
 To prevent a transaction from being processed more than once, we'll use stable memory. Add the "stable_memory" feature to `b3_utils` in your `Cargo.toml`:
 
 ```toml
-b3_utils = { version = "0.8.0", features = ["ledger", "stable_memory"] }
+b3_utils = { version = "0.11.0", features = ["ledger", "stable_memory"] }
 ```
 
 Then, add the following code to initialize stable memory:

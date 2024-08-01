@@ -24,3 +24,5 @@ out/
 target/
 Cargo.lock
 
+# Yarn
+.yarn/*
