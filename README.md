@@ -495,22 +495,12 @@ return <Confirmation hash={data.hash} />
 
 In this step, we'll verify the Ethereum transaction on-chain by calling the Ethereum JSON-RPC API from within the canister.
 
-### Create Rust Structs for API Response
-
-1. **Copy API Response**: Copy the API response from the [eth_getTransactionReceipt](https://docs.alchemy.com/reference/eth-gettransactionreceipt-base) documentation.
-   ![Alt text](assets/copy_response.png)
-2. **Generate Rust Structs**: Paste the copied response into this [online converter](https://transform.tools/json-to-rust-serde) to generate Rust structs.
-   ![Alt text](assets/json_to_serde.png)
-3. **Save the File**: Save the generated code in a new file named `receipt.rs` inside the `backend/payment/src` directory.
-
 ### Add Dependencies
 
 Add the following dependencies to your `Cargo.toml`:
 
 ```toml
-serde = "1.0"
-serde_json = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 ```
 
 ### Create the `eth_get_transaction_receipt` Function
@@ -655,29 +645,59 @@ Here's the code snippet for the function:
 ```rust
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
 
-use b3_utils::hex_string_with_0x_to_nat;
 use candid::Nat;
+
+#[derive(CandidType, Deserialize)]
+pub struct VerifiedTransactionDetails {
+    pub amount: String,
+    pub from: String,
+}
+
 #[ic_cdk::update]
-async fn verify_transaction(hash: String) -> (Nat, String) {
-    let tx = eth_get_transaction_receipt(hash).await.unwrap();
+async fn verify_transaction(hash: String) -> Result<VerifiedTransactionDetails, String> {
+    // Get the transaction receipt
+    let receipt = match eth_get_transaction_receipt(hash.clone()).await {
+        Ok(receipt) => receipt,
+        Err(e) => return Err(format!("Failed to get receipt: {}", e)),
+    };
 
-    if tx.result.status != "0x1" {
-        panic!("Transaction failed")
+    // Ensure the transaction was successful
+    let receipt_data = match receipt {
+        GetTransactionReceiptResult::Ok(Some(data)) => data,
+        GetTransactionReceiptResult::Ok(None) => return Err("Receipt is None".to_string()),
+        GetTransactionReceiptResult::Err(e) => {
+            return Err(format!("Error on Get transaction receipt result: {:?}", e))
+        }
+    };
+
+    // Check if the status indicates success (Nat 1)
+    let success_status = Nat::from(1u8);
+    if receipt_data.status != success_status {
+        return Err("Transaction failed".to_string());
     }
 
-    let log = tx.result.logs[0].clone();
-
-    if tx.result.to != MINTER_ADDRESS || log.address != MINTER_ADDRESS {
-        panic!("Address mismatch")
+    // Verify the 'to' address matches the minter address
+    if receipt_data.to != MINTER_ADDRESS {
+        return Err("Minter address does not match".to_string());
     }
 
-    if log.topics[2] != canister_deposit_principal() {
-        panic!("Principal mismatch")
-    }
+    let deposit_principal = canister_deposit_principal();
 
-    let amount = hex_string_with_0x_to_nat(log.data).unwrap();
+    // Verify the principal in the logs matches the deposit principal
+    let log_principal = receipt_data
+        .logs
+        .iter()
+        .find(|log| log.topics.get(2).map(|topic| topic.as_str()) == Some(&deposit_principal))
+        .ok_or_else(|| "Principal does not match or missing in logs".to_string())?;
 
-    (amount, tx.result.from)
+    // Extract relevant transaction details
+    let amount = log_principal.data.clone();
+    let from_address = receipt_data.from.clone();
+
+    Ok(VerifiedTransactionDetails {
+        amount,
+        from: from_address,
+    })
 }
 ```
 
@@ -685,7 +705,7 @@ async fn verify_transaction(hash: String) -> (Nat, String) {
 
 The function `verify_transaction` performs the following tasks:
 
-- **Check Transaction Status**: It checks if the transaction was successful by comparing the `status` field to "0x1".
+- **Check Transaction Status**: It checks if the transaction was successful by comparing the `status` field to "1".
 
 - **Verify Address**: It verifies that the `to` address in the transaction and the `address` in the logs match the minter address.
 
@@ -748,7 +768,7 @@ const VerifyTransaction: React.FC<VerifyTransactionProps> = ({ hash }) => {
   })
 
   useEffect(() => {
-    call(hash)
+    call([hash])
   }, [hash])
 
   if (loading) {
@@ -835,11 +855,6 @@ Upon successful deployment of the backend, you should see output similar to this
 
 2. **Initiate a Transaction**: Initiate a deposit transaction and confirm it.
    ![Alt text](assets/mainnet_deposit.png)
-
-3. **Check Alchemy Logs**: Open your Alchemy dashboard to check the logs. You should see 13 different calls to the JSON-RPC, which collect consensus on the result and then send it to your canister. This ensures that you can trust the whole process as a successful payment.
-
-Here's what you should see:
-![Alt text](assets/alchemy_logs.png)
 
 ## Step 10: Integrating with ICRC Standard
 
@@ -1111,20 +1126,25 @@ Here's the function:
 #[ic_cdk::update]
 async fn buy_item(item: String, hash: String) -> u64 {
     if TRANSACTIONS.with(|t| t.borrow().contains_key(&hash)) {
-        panic!("Transaction already processed")
+        panic!("Transaction already processed");
     }
 
     let price = ITEMS.with(|p| {
         p.borrow()
             .get(&item)
-            .map(|p| p.clone())
             .unwrap_or_else(|| panic!("Item not found"))
+            .clone()
     });
 
-    let (amount, from) = verify_transaction(hash.clone()).await;
+    let verified_details = match verify_transaction(hash.clone()).await {
+        Ok(details) => details,
+        Err(e) => panic!("Transaction verification failed: {}", e),
+    };
 
-    if amount < price {
-        panic!("Amount too low")
+    let VerifiedTransactionDetails { amount, from } = verified_details;
+
+    if amount.parse::<u128>().unwrap_or(0) < price {
+        panic!("Amount too low");
     }
 
     TRANSACTIONS.with(|t| {
@@ -1229,7 +1249,7 @@ interface ItemProps {
 
 const Item: React.FC<ItemProps> = ({ name, price }) => {
   const { data: canisterDepositAddress, call } = useQueryCall(
-    "canister_deposit_principal"
+    functionName: "canister_deposit_principal"
   )
 
   const { data, isLoading, write } = useContractWrite({

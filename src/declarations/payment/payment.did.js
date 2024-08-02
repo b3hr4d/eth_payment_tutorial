@@ -100,10 +100,6 @@ export const idlFactory = ({ IDL }) => {
     'from' : IDL.Text,
     'amount' : IDL.Text,
   });
-  const Result_2 = IDL.Variant({
-    'Ok' : VerifiedTransactionDetails,
-    'Err' : IDL.Text,
-  });
   const RetrieveEthRequest = IDL.Record({ 'block_index' : IDL.Nat });
   const WithdrawalError = IDL.Variant({
     'TemporarilyUnavailable' : IDL.Text,
@@ -111,7 +107,7 @@ export const idlFactory = ({ IDL }) => {
     'AmountTooLow' : IDL.Record({ 'min_withdrawal_amount' : IDL.Nat }),
     'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
-  const Result_3 = IDL.Variant({
+  const Result_2 = IDL.Variant({
     'Ok' : RetrieveEthRequest,
     'Err' : WithdrawalError,
   });
@@ -133,8 +129,12 @@ export const idlFactory = ({ IDL }) => {
       ),
     'set_item' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'transfer' : IDL.Func([IDL.Text, IDL.Nat], [Result_1], []),
-    'verify_transaction' : IDL.Func([IDL.Text], [Result_2], []),
-    'withdraw' : IDL.Func([IDL.Nat, IDL.Text], [Result_3], []),
+    'verify_transaction' : IDL.Func(
+        [IDL.Text],
+        [VerifiedTransactionDetails],
+        [],
+      ),
+    'withdraw' : IDL.Func([IDL.Nat, IDL.Text], [Result_2], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

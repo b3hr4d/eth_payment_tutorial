@@ -1,34 +1,29 @@
 import { useEffect } from "react"
-import { useUpdateCall } from "service/payment"
+import { useQueryCall } from "service/payment"
+import { formatEther } from "viem"
 
 interface VerifyTransactionProps {
-  item: string
   hash: string
 }
 
-const VerifyTransaction: React.FC<VerifyTransactionProps> = ({
-  item,
-  hash
-}) => {
-  const { loading, error, data, call } = useUpdateCall({
-    functionName: "buy_item"
+const VerifyTransaction: React.FC<VerifyTransactionProps> = ({ hash }) => {
+  const { loading, error, data, call } = useQueryCall({
+    functionName: "verify_transaction"
   })
 
   useEffect(() => {
-    if (hash) {
-      call([item, hash])
-    }
+    call([hash])
   }, [hash])
 
   if (loading) {
-    return <div>Processing Purchase on ICP...</div>
+    return <div>Processing…</div>
   } else if (error) {
     return <div>{error.toString()}</div>
   } else if (data) {
     return (
       <div>
-        <h3>{item} bought!</h3>
-        <div>Purchase ID: {data.toString()}</div>
+        Transaction(<b>{hash}</b>) with <b>{formatEther(data.amount)}</b>ETH
+        from <b>{data.from}</b> is confirmed on-chain.
       </div>
     )
   } else {

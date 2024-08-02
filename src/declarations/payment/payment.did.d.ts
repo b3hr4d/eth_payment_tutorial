@@ -64,9 +64,7 @@ export type Result = { 'Ok' : bigint } |
   { 'Err' : ICRC2ApproveError };
 export type Result_1 = { 'Ok' : bigint } |
   { 'Err' : ICRC1TransferError };
-export type Result_2 = { 'Ok' : VerifiedTransactionDetails } |
-  { 'Err' : string };
-export type Result_3 = { 'Ok' : RetrieveEthRequest } |
+export type Result_2 = { 'Ok' : RetrieveEthRequest } |
   { 'Err' : WithdrawalError };
 export interface RetrieveEthRequest { 'block_index' : bigint }
 export type RpcError = { 'JsonRpcError' : JsonRpcError } |
@@ -112,8 +110,8 @@ export interface _SERVICE {
   'get_transaction_list' : ActorMethod<[], Array<[string, string]>>,
   'set_item' : ActorMethod<[string, bigint], undefined>,
   'transfer' : ActorMethod<[string, bigint], Result_1>,
-  'verify_transaction' : ActorMethod<[string], Result_2>,
-  'withdraw' : ActorMethod<[bigint, string], Result_3>,
+  'verify_transaction' : ActorMethod<[string], VerifiedTransactionDetails>,
+  'withdraw' : ActorMethod<[bigint, string], Result_2>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

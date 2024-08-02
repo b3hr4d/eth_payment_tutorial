@@ -2,7 +2,6 @@ use b3_utils::api::{CallCycles, InterCall};
 use b3_utils::caller_is_controller;
 use b3_utils::{vec_to_hex_string_with_0x, Subaccount};
 use candid::Nat;
-mod receipt;
 
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
 const LEDGER: &str = "apia6-jaaaa-aaaar-qabma-cai";
@@ -51,6 +50,12 @@ fn get_items() -> Vec<(String, u128)> {
     })
 }
 
+#[derive(CandidType, Deserialize)]
+pub struct VerifiedTransactionDetails {
+    pub amount: String,
+    pub from: String,
+}
+
 #[ic_cdk::update]
 async fn buy_item(item: String, hash: String) -> u64 {
     if TRANSACTIONS.with(|t| t.borrow().contains_key(&hash)) {
@@ -64,12 +69,9 @@ async fn buy_item(item: String, hash: String) -> u64 {
             .clone()
     });
 
-    let verified_details = match verify_transaction(hash.clone()).await {
-        Ok(details) => details,
-        Err(e) => panic!("Transaction verification failed: {}", e),
-    };
+    let verified_details = verify_transaction(hash.clone()).await;
 
-    let receipt::VerifiedTransactionDetails { amount, from } = verified_details;
+    let VerifiedTransactionDetails { amount, from } = verified_details;
 
     if amount.parse::<u128>().unwrap_or(0) < price {
         panic!("Amount too low");
@@ -117,31 +119,31 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionRecei
 
 // Function for verifying the transaction on-chain
 #[ic_cdk::update]
-async fn verify_transaction(hash: String) -> Result<receipt::VerifiedTransactionDetails, String> {
+async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
     // Get the transaction receipt
     let receipt = match eth_get_transaction_receipt(hash.clone()).await {
         Ok(receipt) => receipt,
-        Err(e) => return Err(format!("Failed to get receipt: {}", e)),
+        Err(e) => panic!("Failed to get receipt: {}", e),
     };
 
     // Ensure the transaction was successful
     let receipt_data = match receipt {
         GetTransactionReceiptResult::Ok(Some(data)) => data,
-        GetTransactionReceiptResult::Ok(None) => return Err("Receipt is None".to_string()),
+        GetTransactionReceiptResult::Ok(None) => panic!("Receipt is None"),
         GetTransactionReceiptResult::Err(e) => {
-            return Err(format!("Error on Get transaction receipt result: {:?}", e))
+            panic!("Error on Get transaction receipt result: {:?}", e)
         }
     };
 
     // Check if the status indicates success (Nat 1)
     let success_status = Nat::from(1u8);
     if receipt_data.status != success_status {
-        return Err("Transaction failed".to_string());
+        panic!("Transaction failed");
     }
 
     // Verify the 'to' address matches the minter address
     if receipt_data.to != MINTER_ADDRESS {
-        return Err("Minter address does not match".to_string());
+        panic!("Minter address does not match");
     }
 
     let deposit_principal = canister_deposit_principal();
@@ -151,16 +153,16 @@ async fn verify_transaction(hash: String) -> Result<receipt::VerifiedTransaction
         .logs
         .iter()
         .find(|log| log.topics.get(2).map(|topic| topic.as_str()) == Some(&deposit_principal))
-        .ok_or_else(|| "Principal does not match or missing in logs".to_string())?;
+        .unwrap_or_else(|| panic!("Principal not found in logs"));
 
     // Extract relevant transaction details
     let amount = log_principal.data.clone();
     let from_address = receipt_data.from.clone();
 
-    Ok(receipt::VerifiedTransactionDetails {
+    VerifiedTransactionDetails {
         amount,
         from: from_address,
-    })
+    }
 }
 
 #[ic_cdk::query]
