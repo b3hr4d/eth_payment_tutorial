@@ -1,6 +1,5 @@
 import Head from "next/head"
-import { useEffect } from "react"
-import { useActorMethod } from "service/hello"
+import { useQueryCall } from "service/payment"
 import styles from "styles/History.module.css"
 
 import Image from "next/image"
@@ -9,17 +8,13 @@ import { formatEther } from "viem"
 interface purchaseProps {}
 
 const purchase: React.FC<purchaseProps> = ({}) => {
-  const { loading, error, data, call } = useActorMethod("get_transaction_list")
-  const {
-    data: balance,
-    loading: loadingBalance,
-    call: callBalance
-  } = useActorMethod("balance")
+  const { loading, error, data } = useQueryCall({
+    functionName: "get_transaction_list"
+  })
 
-  useEffect(() => {
-    call()
-    callBalance()
-  }, [])
+  const { data: balance, loading: loadingBalance } = useQueryCall({
+    functionName: "balance"
+  })
 
   return (
     <div className={styles.container}>

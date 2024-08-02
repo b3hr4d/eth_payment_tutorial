@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useActorMethod } from "service/hello"
+import { useUpdateCall } from "service/payment"
 
 interface VerifyTransactionProps {
   item: string
@@ -10,10 +10,14 @@ const VerifyTransaction: React.FC<VerifyTransactionProps> = ({
   item,
   hash
 }) => {
-  const { loading, error, data, call } = useActorMethod("buy_item")
+  const { loading, error, data, call } = useUpdateCall({
+    functionName: "buy_item"
+  })
 
   useEffect(() => {
-    call(item, hash)
+    if (hash) {
+      call([item, hash])
+    }
   }, [hash])
 
   if (loading) {

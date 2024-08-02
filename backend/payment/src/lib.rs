@@ -1,3 +1,4 @@
+use b3_utils::api::{CallCycles, InterCall};
 use b3_utils::caller_is_controller;
 use b3_utils::{vec_to_hex_string_with_0x, Subaccount};
 use candid::Nat;
@@ -246,8 +247,6 @@ pub enum WithdrawalError {
 }
 
 type WithdrawalResult = Result<RetrieveEthRequest, WithdrawalError>;
-
-use b3_utils::api::{CallCycles, InterCall};
 
 #[ic_cdk::update(guard = "caller_is_controller")]
 async fn withdraw(amount: Nat, recipient: String) -> WithdrawalResult {

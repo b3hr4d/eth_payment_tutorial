@@ -1,35 +1,16 @@
-import { sepolia, useAccount, useConnect, useDisconnect } from "wagmi"
-import { MetaMaskConnector } from "wagmi/connectors/metaMask"
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
+import { useAccount, useConnect, useDisconnect } from "wagmi"
 import Shop from "./Shop"
-
-const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID!
+import { injected, walletConnect } from "wagmi/connectors"
+import { projectId } from "service/config"
 
 interface WalletProps {}
 
 const Wallet: React.FC<WalletProps> = ({}) => {
   const { address } = useAccount()
 
-  const { connect: walletConnect } = useConnect({
-    connector: new WalletConnectConnector({
-      chains: [sepolia],
-      options: {
-        projectId,
-        metadata: {
-          name: "ICPPayment",
-          description: "Internet Computer Payment",
-          url: "https://github.com/B3Pay",
-          icons: ["https://avatars.githubusercontent.com/u/121541974"]
-        }
-      }
-    })
-  })
-
-  const { connect: metamask } = useConnect({
-    connector: new MetaMaskConnector()
-  })
-
   const { disconnect } = useDisconnect()
+
+  const { connect } = useConnect()
 
   if (address)
     return (
@@ -41,8 +22,32 @@ const Wallet: React.FC<WalletProps> = ({}) => {
     )
   return (
     <div>
-      <button onClick={() => metamask()}>Metamask</button>
-      <button onClick={() => walletConnect()}>WalletConnect</button>
+      <button
+        onClick={() =>
+          connect({
+            connector: injected()
+          })
+        }
+      >
+        Metamask
+      </button>
+      <button
+        onClick={() =>
+          connect({
+            connector: walletConnect({
+              projectId,
+              metadata: {
+                name: "ICPPayment",
+                description: "Internet Computer Payment",
+                url: "https://github.com/B3Pay",
+                icons: ["https://avatars.githubusercontent.com/u/121541974"]
+              }
+            })
+          })
+        }
+      >
+        WalletConnect
+      </button>
     </div>
   )
 }
