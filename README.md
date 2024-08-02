@@ -44,9 +44,9 @@ We'll begin by cloning the [`ic-rust-nextjs`](https://github.com/b3hr4d/ic-rust-
 - [`README.md`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/README.md): Provides an overview and setup instructions.
 - [`Cargo.toml`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/Cargo.toml): The manifest file for the Rust workspace.
 - [`dfx.json`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/dfx.json): Configuration file for the DFINITY Canister SDK.
-- [`backend/payment/src/lib.rs`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/backend/payment/src/lib.rs): The Rust code for the backend logic.
+- [`backend/hello/src/lib.rs`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/backend/hello/src/lib.rs): The Rust code for the backend logic.
 - [`src/pages/index.tsx`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/pages/index.tsx): The main page of the Next.js app.
-- [`src/service/payment.ts`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/service/payment.ts): Service file to interact with the Rust backend.
+- [`src/service/hello.ts`](https://github.com/b3hr4d/ic-rust-nextjs/blob/main/src/service/hello.ts): Service file to interact with the Rust backend.
 
 ### Cloning the Repository
 
@@ -103,6 +103,44 @@ npm run dev
 Open your browser and navigate to [http://localhost:3000](http://localhost:3000) to see your app running.
 
 ![Alt text](assets/starting.png)
+
+## Step 1.1: Rename the Canister ID
+
+In this step, we'll rename the canister ID to make it easier to reference in the code.
+
+### Renaming the Canister ID
+
+To rename the default project name and canister name from "hello" to "payment", follow these steps:
+
+1. Open the `Cargo.toml` file in the "backend/hello" directory.
+
+2. Find the line that says `name = "hello"` and change it to `name = "payment"`.
+
+3. Save the file.
+
+4. Next, open the `dfx.json` file in the root directory of your project.
+
+5. Find the line that says `"hello": {` and change it to `"payment": {`.
+
+6. Inside the `"payment"` object change "package" from `"hello"` to `"payment"` and candid from `"backend/hello/hello.did"` to `"backend/payment/payment.did"`.
+
+7. Save the file.
+
+8. Rename the directory `backend/hello` to `backend/payment`.
+
+9. Open the `Cargo.toml` file in the root directory again.
+
+10. Find the line that says `members = ["backend/hello"]` and change it to `members = ["backend/payment"]`.
+
+11. Save the file.
+
+12. Open the `payment` directory and locate the `hello.did` file.
+
+13. Ensure that the `.did` file is named `payment.did`.
+
+14. Save any changes if necessary.
+
+With these changes, your project and canister will now be named "payment" instead of "hello".
 
 ## Step 2: Modify the Backend for ETH Deposits
 
