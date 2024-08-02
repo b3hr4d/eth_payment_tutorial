@@ -591,7 +591,7 @@ async fn get_receipt(hash: String) -> GetTransactionReceiptResult {
 }
 ```
 
-1. **Deploy the Canister**: Deploy the updated canister using the command `yarn deploy hello`.
+1. **Deploy the Canister**: Deploy the updated canister using the command `yarn deploy evm_rpc && yarn deploy payment`.
 
 2. **Navigate to Candid UI**: After successful deployment, navigate to the Candid UI using the link provided in the terminal.
    Somthing like this `http://127.0.0.1:4943/?canisterId=bd3sg-teaaa-aaaaa-qaaba-cai&id=bkyz2-fmaaa-aaaaa-qaaaq-cai`

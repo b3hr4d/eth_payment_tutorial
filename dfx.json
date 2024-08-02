@@ -1,18 +1,17 @@
 {
   "canisters": {
     "evm_rpc": {
-    "type": "custom",
-    "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
-    "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.wasm.gz",
-    "remote": {
-      "id": {
-        "ic": "7hfb6-caaaa-aaaar-qadga-cai"
-      }
+      "type": "custom",
+      "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
+      "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "7hfb6-caaaa-aaaar-qadga-cai"
+        }
+      },
+      "specified_id": "7hfb6-caaaa-aaaar-qadga-cai",
+      "init_arg": "(record { nodesInSubnet = 28 })"
     },
-    "specified_id": "7hfb6-caaaa-aaaar-qadga-cai",
-    "init_arg": "(record { nodesInSubnet = 28 })"
-    },
-    "hello": {
     "payment": {
       "type": "rust",
       "candid": "backend/payment/payment.did",
@@ -22,15 +21,11 @@
       }
     },
     "frontend": {
-      "dependencies": [
-        "payment"
-      ],
+      "dependencies": ["payment"],
       "frontend": {
         "entrypoint": "out/index.html"
       },
-      "source": [
-        "out"
-      ],
+      "source": ["out"],
       "type": "assets"
     }
   },
