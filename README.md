@@ -205,10 +205,12 @@ This will deploy only the `payment` canister, which now includes the `deposit_pr
 
 ### Update the Frontend Code
 
-Navigate to the frontend code where the `useActorMethod` hook is used. This is typically found in a component file. Change the method from `"greet"` to `"deposit_principal"`:
+Navigate to the frontend code where the `useQueryCall` hook is used. This is typically found in a component file. Change the method from `"greet"` to `"deposit_principal"`:
 
 ```javascript
-const { call, data, error, loading } = useActorMethod("deposit_principal")
+const { call, data, error, loading } = useQueryCall({
+  functionName: "deposit_principal"
+})
 ```
 
 #### Testing the Changes
@@ -226,17 +228,6 @@ In this step, we'll integrate MetaMask using the [wagmi](https://wagmi.sh) libra
 ### Prerequisites
 
 - Make sure you have the [MetaMask extension](https://metamask.io/download.html) installed in your browser.
-- Create a new free account on [Alchemy](https://www.alchemy.com/). After signing up, you have to create a new app with the Ethereum chain - Sepolia network then you’ll be provided with an API key.
-
-1. **Create a `.env` File**: If you haven't already, create a `.env` file in the root directory of your project.
-
-2. **Add Alchemy API Key**: Add the following line to your `.env` file:
-
-   ```env
-   NEXT_PUBLIC_ALCHEMY_KEY=your_alchemy_api_key_here
-   ```
-
-   Replace `your_alchemy_api_key_here` with the API key you got from Alchemy.
 
 ### Installing `wagmi` and `viem`
 
@@ -255,13 +246,11 @@ import { createPublicClient, http } from "viem"
 import { createConfig, sepolia } from "wagmi"
 
 export const config = createConfig({
-  autoConnect: true,
-  publicClient: createPublicClient({
-    chain: sepolia,
-    transport: http(
-      `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
-    )
-  })
+  chains: [sepolia],
+  connectors: [injected()],
+  client({ chain }) {
+    return createClient({ chain, transport: http() })
+  }
 })
 ```
 
@@ -348,7 +337,7 @@ Create a new file named `Deposit.tsx` inside the `src/components` directory and 
 import { canisterId } from "declarations/payment"
 import { useEffect, useState } from "react"
 import helperAbi from "service/abi.json"
-import { useActorMethod } from "service/payment"
+import { useQueryCall } from "service/payment"
 import { parseEther } from "viem"
 import { useContractWrite } from "wagmi"
 
@@ -357,8 +346,9 @@ interface DepositProps {}
 const Deposit: React.FC<DepositProps> = ({}) => {
   const [amount, setAmount] = useState(0)
 
-  const { data: canisterDepositAddress, call } =
-    useActorMethod("deposit_principal")
+  const { data: canisterDepositAddress } = useQueryCall({
+    functionName: "deposit_principal"
+  })
 
   useEffect(() => {
     call(canisterId)
@@ -745,7 +735,7 @@ Here's the code snippet for the component:
 
 ```javascript
 import { useEffect } from "react"
-import { useActorMethod } from "service/payment"
+import { useQueryCall } from "service/payment"
 import { formatEther } from "viem"
 
 interface VerifyTransactionProps {
@@ -753,7 +743,9 @@ interface VerifyTransactionProps {
 }
 
 const VerifyTransaction: React.FC<VerifyTransactionProps> = ({ hash }) => {
-  const { loading, error, data, call } = useActorMethod("verify_transaction")
+  const { loading, error, data, call } = useQueryCall({
+    functionName: "verify_transaction"
+  })
 
   useEffect(() => {
     call(hash)
@@ -1179,17 +1171,19 @@ Create a new file `Shop.tsx` inside the `src/components` directory and add the f
 
 ```jsx
 import { useEffect } from "react"
-import { useActorMethod } from "service/payment"
+import { useQueryCall } from "service/payment"
 import Item from "./Item"
 
 interface ShopProps {}
 
 const Shop: React.FC<ShopProps> = ({}) => {
-  const { data: items, loading, call } = useActorMethod("get_items")
-
-  useEffect(() => {
-    call()
-  }, [])
+  const {
+    data: items,
+    loading,
+    call
+  } = useQueryCall({
+    functionName: "get_items"
+  })
 
   return (
     <div
@@ -1223,7 +1217,7 @@ Create a new file `Item.tsx` inside the `src/components` directory and add the f
 ```jsx
 import { useEffect } from "react"
 import helperAbi from "service/abi.json"
-import { useActorMethod } from "service/payment"
+import { useQueryCall } from "service/payment"
 import { formatEther } from "viem"
 import { useContractWrite } from "wagmi"
 import Confirmation from "./Confirmation"
@@ -1234,13 +1228,9 @@ interface ItemProps {
 }
 
 const Item: React.FC<ItemProps> = ({ name, price }) => {
-  const { data: canisterDepositAddress, call } = useActorMethod(
+  const { data: canisterDepositAddress, call } = useQueryCall(
     "canister_deposit_principal"
   )
-
-  useEffect(() => {
-    call()
-  }, [])
 
   const { data, isLoading, write } = useContractWrite({
     address: "0xb44B5e756A894775FC32EDdf3314Bb1B1944dC34",
@@ -1312,7 +1302,7 @@ Edit the existing `VerifyTransaction.tsx` file to add the `item` prop and work w
 
 ```jsx
 import { useEffect } from "react"
-import { useActorMethod } from "service/payment"
+import { useQueryCall } from "service/payment"
 
 interface VerifyTransactionProps {
   item: string
@@ -1323,10 +1313,14 @@ const VerifyTransaction: React.FC<VerifyTransactionProps> = ({
   item,
   hash
 }) => {
-  const { loading, error, data, call } = useActorMethod("buy_item")
+  const { loading, error, data, call } = useUpdateCall({
+    functionName: "buy_item"
+  })
 
   useEffect(() => {
-    call(item, hash)
+    if (hash) {
+      call([item, hash])
+    }
   }, [hash])
 
   if (loading) {
