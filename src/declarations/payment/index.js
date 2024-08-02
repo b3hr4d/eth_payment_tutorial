@@ -10,8 +10,12 @@ export { idlFactory } from "./payment.did.js";
  * beginning in dfx 0.15.0
  */
 export const canisterId =
+<<<<<<< HEAD:src/declarations/payment/index.js
   process.env.CANISTER_ID_PAYMENT ||
   process.env.PAYMENT_CANISTER_ID;
+=======
+  process.env.CANISTER_ID_HELLO;
+>>>>>>> main:src/declarations/hello/index.js
 
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });
