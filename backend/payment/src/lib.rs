@@ -121,14 +121,14 @@ async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionRecei
 #[ic_cdk::update]
 async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
     // Get the transaction receipt
-    let receipt = match eth_get_transaction_receipt(hash.clone()).await {
+    let receipt_result = match eth_get_transaction_receipt(hash).await {
         Ok(receipt) => receipt,
         Err(e) => panic!("Failed to get receipt: {}", e),
     };
 
     // Ensure the transaction was successful
-    let receipt_data = match receipt {
-        GetTransactionReceiptResult::Ok(Some(data)) => data,
+    let receipt = match receipt_result {
+        GetTransactionReceiptResult::Ok(Some(receipt)) => receipt,
         GetTransactionReceiptResult::Ok(None) => panic!("Receipt is None"),
         GetTransactionReceiptResult::Err(e) => {
             panic!("Error on Get transaction receipt result: {:?}", e)
@@ -137,19 +137,19 @@ async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
 
     // Check if the status indicates success (Nat 1)
     let success_status = Nat::from(1u8);
-    if receipt_data.status != success_status {
+    if receipt.status != success_status {
         panic!("Transaction failed");
     }
 
     // Verify the 'to' address matches the minter address
-    if receipt_data.to != MINTER_ADDRESS {
+    if receipt.to != MINTER_ADDRESS {
         panic!("Minter address does not match");
     }
 
     let deposit_principal = canister_deposit_principal();
 
     // Verify the principal in the logs matches the deposit principal
-    let log_principal = receipt_data
+    let log_principal = receipt
         .logs
         .iter()
         .find(|log| log.topics.get(2).map(|topic| topic.as_str()) == Some(&deposit_principal))
@@ -157,7 +157,7 @@ async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
 
     // Extract relevant transaction details
     let amount = log_principal.data.clone();
-    let from_address = receipt_data.from.clone();
+    let from_address = receipt.from.clone();
 
     VerifiedTransactionDetails {
         amount,
