@@ -544,12 +544,14 @@ Add the follwing code snippet to your `dfx.json` file:
 
 ## Initiate the EVM RPC Canister with your canister ID
 
-Add this line to your `lib.rs` file:
+Use the following types to import the structs from the `evm_rpc_canister_types` crate:
 
 ```rust
-pub const EVM_RPC_CANISTER_ID: Principal =
-  Principal::from_slice(b"\x00\x00\x00\x00\x02\x30\x00\xCC\x01\x01"); // 7hfb6-caaaa-aaaar-qadga-cai
-pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
+// Import the structs from the crate
+use evm_rpc_canister_types::{
+    EthSepoliaService, GetTransactionReceiptResult, MultiGetTransactionReceiptResult, RpcServices,
+    EVM_RPC,
+};
 ```
 
 ## Implement the code logic
@@ -557,14 +559,6 @@ pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
 Here's the code snippet for the function:
 
 ```rust
-// Import the structs from the crate
-use evm_rpc_canister_types::{
-    BlockTag, EthSepoliaService, EvmRpcCanister, GetTransactionReceiptResult, MultiGetTransactionReceiptResult, RpcError, RpcServices
-};
-
-// Import the receipt mod
-mod receipt;
-
 // Implementing the eth_get_transaction function
 async fn eth_get_transaction_receipt(hash: String) -> Result<GetTransactionReceiptResult, String> {
     // Make the call to the EVM_RPC canister

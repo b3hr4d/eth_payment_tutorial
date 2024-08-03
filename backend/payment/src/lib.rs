@@ -12,18 +12,14 @@ use b3_utils::memory::types::DefaultStableBTreeMap;
 use std::cell::RefCell;
 
 use evm_rpc_canister_types::{
-    EthSepoliaService, EvmRpcCanister, GetTransactionReceiptResult,
-    MultiGetTransactionReceiptResult, RpcServices,
+    EthSepoliaService, GetTransactionReceiptResult, MultiGetTransactionReceiptResult, RpcServices,
+    EVM_RPC,
 };
 
 thread_local! {
     static TRANSACTIONS: RefCell<DefaultStableBTreeMap<String, String>> = init_stable_mem_refcell("trasnactions", 1).unwrap();
     static ITEMS: RefCell<DefaultStableBTreeMap<String, u128>> = init_stable_mem_refcell("items", 2).unwrap();
 }
-
-pub const EVM_RPC_CANISTER_ID: Principal =
-    Principal::from_slice(b"\x00\x00\x00\x00\x02\x30\x00\xCC\x01\x01"); // 7hfb6-caaaa-aaaar-qadga-cai
-pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
 
 #[ic_cdk::query]
 fn get_transaction_list() -> Vec<(String, String)> {
