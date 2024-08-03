@@ -646,6 +646,7 @@ Here's the code snippet for the function:
 const MINTER_ADDRESS: &str = "0xb44b5e756a894775fc32eddf3314bb1b1944dc34";
 
 use candid::Nat;
+use b3_utils::hex_string_with_0x_to_nat;
 
 #[derive(CandidType, Deserialize)]
 pub struct VerifiedTransactionDetails {
@@ -691,7 +692,7 @@ async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
         .unwrap_or_else(|| panic!("Principal not found in logs"));
 
     // Extract relevant transaction details
-    let amount = log_principal.data.clone();
+    let amount = hex_string_with_0x_to_nat(&log_principal.data).unwrap();
     let from_address = receipt.from.clone();
 
     VerifiedTransactionDetails {

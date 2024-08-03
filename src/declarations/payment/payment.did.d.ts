@@ -94,7 +94,7 @@ export type ValidationError = { 'CredentialPathNotAllowed' : null } |
   { 'InvalidHex' : string };
 export interface VerifiedTransactionDetails {
   'from' : string,
-  'amount' : string,
+  'amount' : bigint,
 }
 export type WithdrawalError = { 'TemporarilyUnavailable' : string } |
   { 'InsufficientAllowance' : { 'allowance' : bigint } } |

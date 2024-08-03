@@ -98,7 +98,7 @@ export const idlFactory = ({ IDL }) => {
   const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : ICRC1TransferError });
   const VerifiedTransactionDetails = IDL.Record({
     'from' : IDL.Text,
-    'amount' : IDL.Text,
+    'amount' : IDL.Nat,
   });
   const RetrieveEthRequest = IDL.Record({ 'block_index' : IDL.Nat });
   const WithdrawalError = IDL.Variant({

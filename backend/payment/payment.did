@@ -91,7 +91,7 @@ type ValidationError = variant {
   Custom : text;
   InvalidHex : text;
 };
-type VerifiedTransactionDetails = record { from : text; amount : text };
+type VerifiedTransactionDetails = record { from : text; amount : nat };
 type WithdrawalError = variant {
   TemporarilyUnavailable : text;
   InsufficientAllowance : record { allowance : nat };

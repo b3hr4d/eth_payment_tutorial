@@ -1,5 +1,5 @@
 use b3_utils::api::{CallCycles, InterCall};
-use b3_utils::caller_is_controller;
+use b3_utils::{caller_is_controller, hex_string_with_0x_to_nat};
 use b3_utils::{vec_to_hex_string_with_0x, Subaccount};
 use candid::Nat;
 
@@ -52,7 +52,7 @@ fn get_items() -> Vec<(String, u128)> {
 
 #[derive(CandidType, Deserialize)]
 pub struct VerifiedTransactionDetails {
-    pub amount: String,
+    pub amount: Nat,
     pub from: String,
 }
 
@@ -73,7 +73,7 @@ async fn buy_item(item: String, hash: String) -> u64 {
 
     let VerifiedTransactionDetails { amount, from } = verified_details;
 
-    if amount.parse::<u128>().unwrap_or(0) < price {
+    if amount < price {
         panic!("Amount too low");
     }
 
@@ -156,7 +156,7 @@ async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
         .unwrap_or_else(|| panic!("Principal not found in logs"));
 
     // Extract relevant transaction details
-    let amount = log_principal.data.clone();
+    let amount = hex_string_with_0x_to_nat(&log_principal.data).unwrap();
     let from_address = receipt.from.clone();
 
     VerifiedTransactionDetails {
