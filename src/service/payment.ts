@@ -6,5 +6,5 @@ export const { useActorState, useUpdateCall, useQueryCall } = createReactor<
 >({
   canisterId,
   idlFactory,
-  withProcessEnv: true
+  host: process.env.NEXT_PUBLIC_IC_HOST
 })

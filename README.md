@@ -654,50 +654,50 @@ pub struct VerifiedTransactionDetails {
 }
 
 #[ic_cdk::update]
-async fn verify_transaction(hash: String) -> Result<VerifiedTransactionDetails, String> {
+async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
     // Get the transaction receipt
-    let receipt = match eth_get_transaction_receipt(hash.clone()).await {
+    let receipt_result = match eth_get_transaction_receipt(hash).await {
         Ok(receipt) => receipt,
-        Err(e) => return Err(format!("Failed to get receipt: {}", e)),
+        Err(e) => panic!("Failed to get receipt: {}", e),
     };
 
     // Ensure the transaction was successful
-    let receipt_data = match receipt {
-        GetTransactionReceiptResult::Ok(Some(data)) => data,
-        GetTransactionReceiptResult::Ok(None) => return Err("Receipt is None".to_string()),
+    let receipt = match receipt_result {
+        GetTransactionReceiptResult::Ok(Some(receipt)) => receipt,
+        GetTransactionReceiptResult::Ok(None) => panic!("Receipt is None"),
         GetTransactionReceiptResult::Err(e) => {
-            return Err(format!("Error on Get transaction receipt result: {:?}", e))
+            panic!("Error on Get transaction receipt result: {:?}", e)
         }
     };
 
     // Check if the status indicates success (Nat 1)
     let success_status = Nat::from(1u8);
-    if receipt_data.status != success_status {
-        return Err("Transaction failed".to_string());
+    if receipt.status != success_status {
+        panic!("Transaction failed");
     }
 
     // Verify the 'to' address matches the minter address
-    if receipt_data.to != MINTER_ADDRESS {
-        return Err("Minter address does not match".to_string());
+    if receipt.to != MINTER_ADDRESS {
+        panic!("Minter address does not match");
     }
 
     let deposit_principal = canister_deposit_principal();
 
     // Verify the principal in the logs matches the deposit principal
-    let log_principal = receipt_data
+    let log_principal = receipt
         .logs
         .iter()
         .find(|log| log.topics.get(2).map(|topic| topic.as_str()) == Some(&deposit_principal))
-        .ok_or_else(|| "Principal does not match or missing in logs".to_string())?;
+        .unwrap_or_else(|| panic!("Principal not found in logs"));
 
     // Extract relevant transaction details
     let amount = log_principal.data.clone();
-    let from_address = receipt_data.from.clone();
+    let from_address = receipt.from.clone();
 
-    Ok(VerifiedTransactionDetails {
+    VerifiedTransactionDetails {
         amount,
         from: from_address,
-    })
+    }
 }
 ```
 

@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import helperAbi from "service/abi.json"
 import { formatEther } from "viem"
 import Confirmation from "./Confirmation"
