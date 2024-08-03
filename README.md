@@ -650,7 +650,7 @@ use b3_utils::hex_string_with_0x_to_nat;
 
 #[derive(CandidType, Deserialize)]
 pub struct VerifiedTransactionDetails {
-    pub amount: String,
+    pub amount: Nat,
     pub from: String,
 }
 
@@ -692,7 +692,8 @@ async fn verify_transaction(hash: String) -> VerifiedTransactionDetails {
         .unwrap_or_else(|| panic!("Principal not found in logs"));
 
     // Extract relevant transaction details
-    let amount = hex_string_with_0x_to_nat(&log_principal.data).unwrap();
+    let amount = hex_string_with_0x_to_nat(&log_principal.data)
+        .unwrap_or_else(|e| panic!("Failed to parse amount: {}", e));
     let from_address = receipt.from.clone();
 
     VerifiedTransactionDetails {
